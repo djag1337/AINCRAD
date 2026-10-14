@@ -117,6 +117,10 @@ struct WidgetsPane: View {
         case "stat": return DataHub.shared.title(for: w.prop("source", "cpu"))
         case "hpbar": return "HP bars"
         case "quests": return "Quest log"
+        case "party": return "Party"
+        case "status": return "Status effects"
+        case "battlelog": return "Battle log"
+        case "exp": return "EXP bar"
         case "app": return "App: " + w.prop("target", "").components(separatedBy: "/").last!.replacingOccurrences(of: ".app", with: "")
         default: return WidgetCatalog.entries.first { $0.type == w.type }?.name ?? w.type
         }
@@ -288,6 +292,11 @@ struct WidgetInspector: View {
                     }
                 }
                 Toggle("Show name", isOn: Binding(get: { widget.flag("label", true) }, set: { v in prop("label").wrappedValue = v ? "true" : "false" }))
+            }
+        case "party":
+            Section("Party") {
+                Stepper("Members: \(widget.prop("count", "3"))", value: Binding(get: { Int(widget.prop("count", "3")) ?? 3 },
+                        set: { prop("count").wrappedValue = String($0) }), in: 1...6)
             }
         case "quests":
             Section("Quest log") {

@@ -65,7 +65,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             self?.widgets?.setHUD(on: open ? NSApp.windows.first(where: { $0 is LauncherPanel })?.screen : nil)
             if open { self?.scripts.launcherOpened() }
         }
-        launcher?.onItemChosen = { [weak self] name in self?.scripts.itemChosen(name) }
+        launcher?.onItemChosen = { [weak self] name in
+            self?.scripts.itemChosen(name)
+            BattleLog.shared.add("Used \(name)", symbol: "hand.tap.fill")
+            ExpStore.shared.gain(10)
+        }
+        BattleLog.shared.start()
+        ExpStore.shared.start()
         launcher?.recents.start()
         commandDeck.openLauncher = { [weak self] in self?.launcher?.open() }
         shell.openLauncher = { [weak self] in self?.launcher?.open() }
@@ -251,6 +257,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         let s = store.settings.reducedMotion
         let reduced = s == "on" || (s == "system" && NSWorkspace.shared.accessibilityDisplayShouldReduceMotion)
         bubbles.show(note, theme: store.theme, reducedMotion: reduced)
+        BattleLog.shared.add("\(note.app): \(note.title)", symbol: "bell.fill")
         SoundPlayer.shared.enabled = store.settings.soundsEnabled
         SoundPlayer.shared.play(.open)
     }

@@ -139,6 +139,18 @@ enum WidgetCatalog {
         Entry(type: "quests", name: "Quest log (calendar & reminders)", symbol: "list.star") {
             WidgetConfig(type: "quests", width: 360, height: 270, style: WidgetStyle(fontSize: 17), props: ["events": "true", "reminders": "true"])
         },
+        Entry(type: "party", name: "Party (busiest apps)", symbol: "person.3.fill") {
+            WidgetConfig(type: "party", width: 320, height: 190, style: WidgetStyle(fontSize: 17), props: ["count": "3"])
+        },
+        Entry(type: "status", name: "Status effects", symbol: "sparkles") {
+            WidgetConfig(type: "status", width: 360, height: 120, style: WidgetStyle(fontSize: 17))
+        },
+        Entry(type: "battlelog", name: "Battle log", symbol: "list.bullet.rectangle") {
+            WidgetConfig(type: "battlelog", width: 340, height: 220, style: WidgetStyle(fontSize: 17))
+        },
+        Entry(type: "exp", name: "EXP bar", symbol: "star.circle") {
+            WidgetConfig(type: "exp", width: 360, height: 80, style: WidgetStyle(fontSize: 17))
+        },
         Entry(type: "text", name: "Text", symbol: "textformat") {
             WidgetConfig(type: "text", width: 300, height: 80, props: ["text": "Welcome to Sword Art Online!", "align": "center"])
         },

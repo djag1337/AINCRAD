@@ -556,6 +556,10 @@ enum WidgetFactory {
         case "launcher": type = LauncherButtonContent.self
         case "gameshelf": type = GameShelfContent.self
         case "quests": type = QuestContent.self
+        case "party": type = PartyContent.self
+        case "status": type = StatusContent.self
+        case "battlelog": type = BattleLogContent.self
+        case "exp": type = ExpContent.self
         default: type = TextContent.self
         }
         return type.init(config: config, theme: theme, accent: accent, scale: scale)

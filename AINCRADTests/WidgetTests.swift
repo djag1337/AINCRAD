@@ -130,3 +130,43 @@ final class HUDWidgetTests: XCTestCase {
         }
     }
 }
+
+final class HUDWidgetTypeTests: XCTestCase {
+    func testExpCurve() {
+        XCTAssertEqual(ExpStore.threshold(1), 0)
+        XCTAssertEqual(ExpStore.threshold(2), 100)
+        XCTAssertEqual(ExpStore.threshold(3), 300)
+        XCTAssertEqual(ExpStore.level(for: 0), 1)
+        XCTAssertEqual(ExpStore.level(for: 99), 1)
+        XCTAssertEqual(ExpStore.level(for: 100), 2)
+        XCTAssertEqual(ExpStore.level(for: 299), 2)
+        XCTAssertEqual(ExpStore.level(for: 300), 3)
+    }
+
+    func testStatusEffectsNeverEmpty() {
+        XCTAssertFalse(StatusEffects.current().isEmpty)
+    }
+
+    func testAppLoadSharesStayInRange() {
+        _ = AppLoad.shared.top(3)
+        Thread.sleep(forTimeInterval: 0.2)
+        let top = AppLoad.shared.top(3)
+        XCTAssertLessThanOrEqual(top.count, 3)
+        for m in top { XCTAssertTrue((0...1).contains(m.cpu), "\(m.name) \(m.cpu)") }
+        XCTAssertEqual(top.map(\.cpu), top.map(\.cpu).sorted(by: >))
+    }
+
+    func testBattleLogKeepsNewestFirstAndCaps() {
+        let log = BattleLog()
+        for i in 0..<60 { log.add("e\(i)") }
+        XCTAssertEqual(log.entries.count, 50)
+        XCTAssertEqual(log.entries.first?.text, "e59")
+    }
+
+    func testNewTypesBuild() {
+        for type in ["party", "status", "battlelog", "exp"] {
+            let content = WidgetFactory.make(WidgetConfig(type: type, width: 340, height: 200), theme: .classic, accent: .orange, scale: 2)
+            XCTAssertNotEqual(String(describing: Swift.type(of: content)), "TextContent", type)
+        }
+    }
+}
