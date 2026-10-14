@@ -10,8 +10,7 @@ calendar as a quest log, and run the menus of whatever app you were just using.
 It's a native Swift app, built on AppKit and Core Animation. It doesn't use web views or
 third-party libraries, and it's light enough to leave running all day on an old Intel Mac mini.
 
-<!-- Hero screenshot: drop a clean capture at docs/images/hero.png and uncomment the line below. -->
-<!-- ![AINCRAD open on the desktop](docs/images/hero.png) -->
+![AINCRAD open on the desktop: the menu, HUD widgets, top bar and dock](docs/images/hero.png)
 
 > Unofficial fan project. Not affiliated with Sword Art Online or its rights holders.
 

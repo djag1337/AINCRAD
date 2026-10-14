@@ -8,6 +8,13 @@ Notable changes to AINCRAD. Dates are when a change landed, not a formal release
 - **HUD widgets.** Any widget can live in the HUD, which slides in when the launcher opens.
   There's a HUD-wide opacity slider on top of each widget's own opacity, and a starter layout:
   clock, CPU/memory/disk, network and a quest log.
+- **Four more HUD widgets.**
+  - **EXP bar:** levels earned by using the launcher and by active minutes.
+  - **Party:** your busiest apps, with HP = CPU they leave free.
+  - **Status effects:** Wi-Fi, battery, mute, keep-awake, load and disk.
+  - **Battle log:** apps joining and leaving, launcher choices and bubbles.
+- Desktop widgets fade while the launcher is open (can be turned off), and HUD widgets show a
+  "HUD" tag in edit mode.
 - **Quest log widget.** Today's calendar events and due reminders, with the next event as the
   *Floor Boss* and a countdown bar.
 - **Shell top bar and dock.** An SAO bar over the menu bar, and a dock of your apps, shown with
@@ -23,11 +30,15 @@ Notable changes to AINCRAD. Dates are when a change landed, not a formal release
 - Separate title and text fonts in themes (Orbitron and Rajdhani by default, both bundled).
 
 ### Changed
+- **Opening the launcher is about 4× faster** than earlier today: 7.5–13 ms (median 8.4), down
+  from 37–39 ms. The animation is smoother too. See docs/PERFORMANCE.md.
 - Opening an app from the dock or the launcher behaves like a Dock click: it unhides the app
   and restores a minimized window.
 - The top bar names the app you were actually in, not a background helper.
 
 ### Fixed
+- Clicking outside an open dock or top-bar menu closed the whole launcher.
+- The menu-bar icon list took about 1 s to appear. It's now read ahead and shows instantly.
 - Right-click menus over tilted columns: the first row was half hidden and stray lines showed.
 - Root captions like "Command Center" no longer get cut off.
 

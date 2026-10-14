@@ -32,6 +32,9 @@ An honest list of what works, what's built but not fully tested, and what's miss
 - ✅ Backups before every save; broken files reported, never overwritten
 
 **Widgets**
+- ✅ HUD widget types: EXP bar, Party, Status effects, Battle log (screenshot + recording, shown temporarily); 5 unit tests
+- ✅ Desktop widgets fade while the launcher is open (window opacity measured 1.0 → 0.2 → 1.0)
+- 🟡 "HUD" tag in edit mode (unit-tested; not seen on screen because windows covered the desktop)
 - ✅ Clock, stat (CPU/memory/disk/battery/network/uptime as bar/ring/text), SAO HP bars, text, image, app shortcut, launcher button (rendered on the desktop)
 - ✅ Desktop editor: select, move, resize (tested live); rotate, nudge, delete, inspector, undo/redo, named layouts (built)
 - ✅ Per-display layouts; sampling pauses when covered (logged)
