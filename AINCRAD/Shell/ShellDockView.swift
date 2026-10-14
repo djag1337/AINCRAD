@@ -30,7 +30,14 @@ final class ShellDockView: ShellLayerView {
         i > 0 && !apps[i].pinned && apps[i - 1].pinned
     }
 
+    private var builtSize = CGSize.zero
+
     func set(apps: [ShellApp], running: Set<String>, frontmost: String?, theme: Theme) {
+        // Opening the launcher calls this every time; only redraw when something changed.
+        let relevant = Set(apps.compactMap(\.bundleID)).intersection(running)
+        if apps == self.apps, relevant == Set(self.apps.compactMap(\.bundleID)).intersection(self.running),
+           frontmost == self.frontmost, theme == self.theme, bounds.size == builtSize, !buttons.isEmpty { return }
+        builtSize = bounds.size
         self.apps = apps
         self.running = running
         self.frontmost = frontmost

@@ -80,3 +80,21 @@ updating widgets on screen, or hide them from the menu bar menu.
 * No live behind-window blur, since it would recomposite on every wallpaper frame. It's not built;
   if added, it would be a measured, opt-in theme option.
 * Mouse gesture tap on its own thread, so a busy UI can never delay the system's mouse events.
+
+## October 14: shell, HUD widgets and new widget types
+
+Same machine. Measured with the launcher's top bar, dock and 8 HUD widgets in use.
+
+| Measurement | Result |
+|---|---|
+| Idle, launcher closed, 2 min | **0.00 % CPU** average and max, 29 MB |
+| Launcher open, 16 s | 0.2 % CPU, 31 MB; WindowServer 22 % vs 20 % closed |
+| Open time before this pass | 37–39 ms (one 154 ms): the top bar, dock and HUD widgets were rebuilt on every open |
+| After keeping HUD widget windows between opens and caching the bar/dock | 24–30 ms |
+| After skipping the full-screen window scan unless always-on | 23–25 ms |
+| After showing the shell one frame after the menu | 7.4–8.4 ms, but 11 late animation frames over 10 opens |
+| After moving the HUD, bar and dock fades to layer animations (final) | **7.5–13.4 ms (median 8.4)**, open animation mean 13.3 ms, 4 late frames over 10 opens, worst 35 ms |
+
+The late frames came from animating window frames. `NSWindow` animator calls run on the main
+thread every frame. Layer animations run in the render server, so they no longer compete with the
+menu's own animation.

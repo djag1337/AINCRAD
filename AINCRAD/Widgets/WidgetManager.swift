@@ -174,28 +174,20 @@ final class WidgetManager: NSObject, ObservableObject, WidgetHostDelegate {
             dimDesktop(on: key, true)
             for (id, host) in hosts where host.built.hud && host.built.display == key {
                 guard let w = layout.widgets.first(where: { $0.id == id }), let sc = screen else { continue }
-                let target = host.panel.frame
                 let fromLeft = w.x + w.width / 2 < Double(sc.frame.width) / 2
-                host.panel.setFrame(target.offsetBy(dx: fromLeft ? -40 : 40, dy: 0), display: false)
-                host.panel.alphaValue = 0
-                NSAnimationContext.runAnimationGroup { ctx in
-                    ctx.duration = 0.22
-                    ctx.timingFunction = CAMediaTimingFunction(name: .easeOut)
-                    host.panel.animator().setFrame(target, display: true)
-                    host.panel.animator().alphaValue = opacity(w)
-                }
+                host.view.animateIn(fromX: fromLeft ? -40 : 40)
             }
         } else {
             if let old = hudDisplay { dimDesktop(on: old, false) }
             let closing = hosts.filter { $0.value.built.hud && !editing }
             hudDisplay = nil
-            NSAnimationContext.runAnimationGroup({ ctx in
-                ctx.duration = 0.14
-                closing.values.forEach { $0.panel.animator().alphaValue = 0 }
-            }, completionHandler: { [weak self] in
+            CATransaction.begin()
+            CATransaction.setCompletionBlock { [weak self] in
                 guard let self, self.hudDisplay == nil else { return }
                 self.sync()
-            })
+            }
+            closing.values.forEach { $0.view.animateOut() }
+            CATransaction.commit()
         }
     }
 
@@ -278,10 +270,9 @@ final class WidgetManager: NSObject, ObservableObject, WidgetHostDelegate {
 
     /// Brings windows in line with `layout`: creates, rebuilds (content changed), moves, removes.
     private func sync() {
-        // HUD widgets exist only while their display's HUD is open, or while editing.
-        let wanted = enabled ? layout.widgets.filter {
-            !$0.hidden && WidgetManager.screen(for: $0.display) != nil && (!$0.hud || editing || $0.display == hudDisplay)
-        } : []
+        // HUD widgets keep their windows between opens (building them took ~10 ms per open);
+        // they're only ordered in while their display's HUD is open, or while editing.
+        let wanted = enabled ? layout.widgets.filter { !$0.hidden && WidgetManager.screen(for: $0.display) != nil } : []
         let wantedIDs = Set(wanted.map(\.id))
         hosts.keys.filter { !wantedIDs.contains($0) }.forEach(closeHost)
         for w in wanted.sorted(by: { $0.z < $1.z }) {
@@ -291,6 +282,11 @@ final class WidgetManager: NSObject, ObservableObject, WidgetHostDelegate {
             } else {
                 closeHost(w.id)
                 makeHost(w, screen: screen)
+            }
+            if w.hud, let host = hosts[w.id] {
+                let shown = editing || w.display == hudDisplay
+                if shown && !host.panel.isVisible { host.panel.orderFrontRegardless() }
+                if !shown && host.panel.isVisible { host.panel.orderOut(nil) }
             }
         }
         updateRunning()

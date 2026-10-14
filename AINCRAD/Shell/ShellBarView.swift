@@ -19,7 +19,12 @@ final class ShellBarView: ShellLayerView {
     private var playerRect = CGRect.zero
     private var tracking: NSTrackingArea?
 
+    private var builtTheme: Theme?
+
+    /// Rebuilds the layers only when the theme changed; opening the launcher calls this every time.
     func build(theme: Theme) {
+        guard theme != builtTheme || host.sublayers?.isEmpty != false else { return }
+        builtTheme = theme
         self.theme = theme
         host.sublayers?.forEach { $0.removeFromSuperlayer() }
         let c = theme.colors

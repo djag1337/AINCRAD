@@ -54,6 +54,12 @@ final class ShellController: NSObject {
                                    "/System/Applications/Messages.app", "/System/Applications/Music.app", "/System/Applications/Photos.app",
                                    "/System/Applications/Calendar.app", "/System/Applications/App Store.app", "/System/Applications/System Settings.app"]
 
+    private static let clockFormat: DateFormatter = {
+        let df = DateFormatter()
+        df.dateFormat = "EEE d MMM  ·  h:mm a"
+        return df
+    }()
+
     static let dockHeight = ShellDockView.size + 24 + ShellDockView.labelRoom
     /// Height of the top bar on `screen`: the menu bar it covers, so windows below are never hidden.
     static func barHeight(for screen: NSScreen) -> CGFloat {
@@ -128,12 +134,15 @@ final class ShellController: NSObject {
         if launcherOpen { prefetchExtras() }
         updateModes(animated: wasVisible)
         if !wasVisible {
+            // Fade the layers, not the windows: Core Animation runs it off the main thread.
             for panel in panels where currentlyShown(panel) {
-                panel.alphaValue = 0
-                NSAnimationContext.runAnimationGroup { ctx in
-                    ctx.duration = 0.18
-                    panel.animator().alphaValue = 1
-                }
+                guard let layer = panel.contentView?.layer else { continue }
+                layer.removeAnimation(forKey: "out")
+                let fade = CABasicAnimation(keyPath: "opacity")
+                fade.fromValue = 0
+                fade.toValue = 1
+                fade.duration = 0.18
+                layer.add(fade, forKey: "in")
             }
         }
         panels.forEach { $0.orderFrontRegardless() }
@@ -174,21 +183,33 @@ final class ShellController: NSObject {
             NotificationCenter.default.removeObserver($0)
         }
         observers = []
-        for panel in bars.map(\.panel) + [dockPanel].compactMap({ $0 }) {
-            NSAnimationContext.runAnimationGroup({ ctx in
-                ctx.duration = 0.14
-                panel.animator().alphaValue = 0
-            }, completionHandler: { [weak self] in
-                if self?.visible != true { panel.orderOut(nil) }
-            })
+        let panels = bars.map(\.panel) + [dockPanel].compactMap({ $0 })
+        CATransaction.begin()
+        CATransaction.setCompletionBlock { [weak self] in
+            guard self?.visible != true else { return }
+            for panel in panels {
+                panel.orderOut(nil)
+                panel.contentView?.layer?.removeAnimation(forKey: "out")
+            }
         }
+        for panel in panels {
+            let fade = CABasicAnimation(keyPath: "opacity")
+            fade.fromValue = 1
+            fade.toValue = 0
+            fade.duration = 0.14
+            fade.fillMode = .forwards
+            fade.isRemovedOnCompletion = false
+            panel.contentView?.layer?.add(fade, forKey: "out")
+        }
+        CATransaction.commit()
     }
 
     // MARK: Edges and full screen
 
     private func updateModes(animated: Bool) {
         guard visible else { return }
-        let fullScreen = fullScreenDisplays()
+        // The window-list scan costs several ms; only always-on mode (launcher closed) needs it.
+        let fullScreen = alwaysOn && !launcherOpen ? fullScreenDisplays() : []
         for bar in bars {
             let fs = fullScreen.contains(bar.display)
             let mode: EdgeMode = launcherOpen || !alwaysOn ? .solid
@@ -345,9 +366,7 @@ final class ShellController: NSObject {
             ?? NSWorkspace.shared.runningApplications.first { $0.isActive && $0.bundleIdentifier != Bundle.main.bundleIdentifier }
             ?? NSWorkspace.shared.menuBarOwningApplication
         let appName = front?.bundleIdentifier == Bundle.main.bundleIdentifier ? "Desktop" : (front?.localizedName ?? "Desktop")
-        let df = DateFormatter()
-        df.dateFormat = "EEE d MMM  ·  h:mm a"
-        let clock = df.string(from: Date())
+        let clock = ShellController.clockFormat.string(from: Date())
         for bar in bars {
             bar.view.update(player: name, hp: hp, lv: lv, app: ShellController.demo ? "" : appName,
                             icon: ShellController.demo ? nil : front?.icon, status: status, clock: clock)

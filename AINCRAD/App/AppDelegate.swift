@@ -56,13 +56,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         launcher?.onOpenChanged = { [weak self] open in
             self?.gesture?.setLauncherOpen(open)
             self?.touch?.setLauncherOpen(open)
-            if let self {
+            // The bar, dock and HUD widgets fade in over ~0.2 s, so showing them a frame after the
+            // menu costs nothing visible and keeps their window ordering (~15 ms) off the open path.
+            let showShell = { [weak self] in
+                guard let self, self.launcher?.isOpen == open else { return }
                 self.shell.playerName = self.store.settings.playerName
                 self.shell.targetApp = self.launcher?.previousApp
                 self.shell.setLauncherOpen(open, enabled: self.store.settings.shellModeEnabled && !self.safeMode,
                                            hideMenuBar: false, hideDock: false, theme: self.store.theme)
+                self.widgets?.setHUD(on: open ? NSApp.windows.first(where: { $0 is LauncherPanel })?.screen : nil)
             }
-            self?.widgets?.setHUD(on: open ? NSApp.windows.first(where: { $0 is LauncherPanel })?.screen : nil)
+            open ? DispatchQueue.main.async(execute: showShell) : showShell()
             if open { self?.scripts.launcherOpened() }
         }
         launcher?.onItemChosen = { [weak self] name in

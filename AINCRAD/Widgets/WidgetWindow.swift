@@ -107,6 +107,36 @@ final class WidgetHostView: NSView {
 
     var widgetContent: WidgetContent? { content }
 
+    /// HUD entrance: slide in from `dx` and fade up. Run by Core Animation off the main thread;
+    /// animating the window frame instead stalled the launcher's own open animation.
+    func animateIn(fromX dx: CGFloat) {
+        guard let layer else { return }
+        layer.removeAnimation(forKey: "out")
+        let move = CABasicAnimation(keyPath: "transform.translation.x")
+        move.fromValue = dx
+        move.toValue = 0
+        let fade = CABasicAnimation(keyPath: "opacity")
+        fade.fromValue = 0
+        fade.toValue = 1
+        let group = CAAnimationGroup()
+        group.animations = [move, fade]
+        group.duration = 0.22
+        group.timingFunction = CAMediaTimingFunction(name: .easeOut)
+        group.fillMode = .backwards
+        layer.add(group, forKey: "in")
+    }
+
+    /// Fades the widget out (left faded until the next `animateIn`).
+    func animateOut(duration: CFTimeInterval = 0.14) {
+        let fade = CABasicAnimation(keyPath: "opacity")
+        fade.fromValue = 1
+        fade.toValue = 0
+        fade.duration = duration
+        fade.fillMode = .forwards
+        fade.isRemovedOnCompletion = false
+        layer?.add(fade, forKey: "out")
+    }
+
     private func layoutHolder() {
         let w = config.width, h = config.height
         Motion.instant {
