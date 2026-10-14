@@ -4,6 +4,8 @@ import AppKit
 
 /// SAO dock: the launcher's own glass buttons on a slim rail, with hover lift, accent ring,
 /// the app's name above it, running dots, and a divider before running-only apps.
+/// Edited in place: drag a pinned item to reorder it or off the dock to remove it, and drop
+/// apps or folders from Finder onto it.
 final class ShellDockView: ShellLayerView {
     private(set) var apps: [ShellApp] = []
     private var running = Set<String>(), frontmost: String?
@@ -17,6 +19,18 @@ final class ShellDockView: ShellLayerView {
     var onClick: ((ShellApp) -> Void)?
     /// Right-click on an app: the app and its button's frame in screen coordinates.
     var onContext: ((ShellApp, NSRect) -> Void)?
+    /// A folder was clicked; its button's frame in screen coordinates.
+    var onFolder: ((ShellApp, NSRect) -> Void)?
+    /// Drag edits, by index among the pinned items.
+    var onMove: ((Int, Int) -> Void)?
+    var onRemove: ((ShellApp) -> Void)?
+    /// Files dropped from Finder, and the pinned index to insert them at.
+    var onDrop: (([URL], Int) -> Void)?
+
+    private var press: (index: Int, start: CGPoint)?
+    private var dragging = false
+    private var dropTarget: Int?
+    private let marker = CALayer()
 
     static let size: CGFloat = 50, gap: CGFloat = 10, pad: CGFloat = 14, labelRoom: CGFloat = 34
 
@@ -113,7 +127,7 @@ final class ShellDockView: ShellLayerView {
                 host.addSublayer(b)
                 buttons.append(b)
                 rings.append(ring)
-                if let id = app.bundleID, running.contains(id) {
+                if !app.folder, let id = app.bundleID, running.contains(id) {
                     let dot = CALayer()
                     dot.frame = CGRect(x: r.midX - 2.5, y: r.maxY + 3, width: 5, height: 5)
                     dot.cornerRadius = 2.5
@@ -136,8 +150,129 @@ final class ShellDockView: ShellLayerView {
             label.contentsScale = window?.backingScaleFactor ?? 2
             label.opacity = 0
             host.addSublayer(label)
+            marker.backgroundColor = accent.cgColor
+            marker.shadowColor = accent.cgColor
+            marker.shadowOpacity = 0.9
+            marker.shadowRadius = 4
+            marker.shadowOffset = .zero
+            marker.cornerRadius = 1.5
+            marker.opacity = 0
+            host.addSublayer(marker)
         }
         hovered = nil
+        registerForDraggedTypes([.fileURL])
+    }
+
+    // MARK: Editing
+
+    private var pinnedCount: Int { apps.prefix { $0.pinned }.count }
+
+    /// The pinned insertion index (0…pinnedCount) for a point, by the gaps between buttons.
+    private func insertionIndex(at p: CGPoint) -> Int {
+        let pinned = Array(slots.prefix(pinnedCount))
+        return pinned.firstIndex { p.x < $0.midX } ?? pinned.count
+    }
+
+    private func showMarker(at index: Int?) {
+        Motion.instant {
+            guard let index, !slots.isEmpty else { marker.opacity = 0; return }
+            let s = ShellDockView.size, cy = slots[0].midY
+            let x: CGFloat
+            if index < pinnedCount { x = slots[index].minX - ShellDockView.gap / 2 }
+            else if pinnedCount > 0 { x = slots[pinnedCount - 1].maxX + ShellDockView.gap / 2 }
+            else { x = ShellDockView.pad / 2 }
+            marker.frame = CGRect(x: x - 1.5, y: cy - s / 2, width: 3, height: s)
+            marker.opacity = 1
+        }
+    }
+
+    override func mouseDragged(with event: NSEvent) {
+        guard let press, apps[press.index].pinned else { return }
+        let p = convert(event.locationInWindow, from: nil)
+        if !dragging {
+            guard hypot(p.x - press.start.x, p.y - press.start.y) > 5 else { return }
+            dragging = true
+            setHover(nil)
+        }
+        let b = buttons[press.index], r = slots[press.index]
+        // Off the dock (well above the rail) means "remove".
+        let removing = p.y < ShellDockView.labelRoom - 12
+        Motion.instant {
+            b.position = CGPoint(x: p.x, y: removing ? p.y : r.midY)
+            b.opacity = removing ? 0.45 : 1
+            rings[press.index].opacity = 0
+        }
+        showMarker(at: removing ? nil : insertionIndex(at: p))
+        showLabel(removing ? "REMOVE" : apps[press.index].name.uppercased(), over: CGRect(x: p.x - 1, y: 0, width: 2, height: 1))
+    }
+
+    override func mouseUp(with event: NSEvent) {
+        defer { press = nil; dragging = false }
+        guard let press else { return }
+        let p = convert(event.locationInWindow, from: nil)
+        guard dragging else {
+            // A plain click: open the app, or show the folder.
+            guard index(event) == press.index else { return }
+            let app = apps[press.index]
+            if app.folder, let window {
+                onFolder?(app, window.convertToScreen(convert(slots[press.index], to: nil)))
+            } else {
+                onClick?(app)
+            }
+            return
+        }
+        showMarker(at: nil)
+        let app = apps[press.index]
+        if p.y < ShellDockView.labelRoom - 12 {
+            SoundPlayer.shared.play(.back)
+            onRemove?(app)
+        } else {
+            var to = insertionIndex(at: p)
+            if to > press.index { to -= 1 }
+            if to != press.index { onMove?(press.index, to) }
+        }
+        // Snap back; a move or removal rebuilds the dock from the store.
+        CATransaction.begin()
+        CATransaction.setAnimationDuration(0.15)
+        buttons[press.index].position = CGPoint(x: slots[press.index].midX, y: slots[press.index].midY)
+        buttons[press.index].opacity = 1
+        CATransaction.commit()
+    }
+
+    private func showLabel(_ text: String, over r: CGRect) {
+        Motion.instant {
+            label.string = text
+            let tw = min(label.preferredFrameSize().width + 18, 240)
+            let x = min(max(r.midX - tw / 2, 2), bounds.width - tw - 2)
+            labelBack.frame = CGRect(x: x, y: 4, width: tw, height: 22)
+            label.frame = CGRect(x: x, y: 8, width: tw, height: 16)
+            label.opacity = 1
+            labelBack.opacity = 1
+        }
+    }
+
+    // Drops from Finder (when the dock is up while Finder is in front: always-on mode).
+    private func droppedURLs(_ info: NSDraggingInfo) -> [URL] {
+        (info.draggingPasteboard.readObjects(forClasses: [NSURL.self], options: [.urlReadingFileURLsOnly: true]) as? [URL]) ?? []
+    }
+
+    override func draggingEntered(_ sender: NSDraggingInfo) -> NSDragOperation { draggingUpdated(sender) }
+
+    override func draggingUpdated(_ sender: NSDraggingInfo) -> NSDragOperation {
+        guard !droppedURLs(sender).isEmpty else { return [] }
+        showMarker(at: insertionIndex(at: convert(sender.draggingLocation, from: nil)))
+        return .copy
+    }
+
+    override func draggingExited(_ sender: NSDraggingInfo?) { showMarker(at: nil) }
+
+    override func performDragOperation(_ sender: NSDraggingInfo) -> Bool {
+        let urls = droppedURLs(sender)
+        showMarker(at: nil)
+        guard !urls.isEmpty else { return false }
+        onDrop?(urls, insertionIndex(at: convert(sender.draggingLocation, from: nil)))
+        SoundPlayer.shared.play(.select)
+        return true
     }
 
     override func updateTrackingAreas() {
@@ -191,13 +326,12 @@ final class ShellDockView: ShellLayerView {
 
     override func mouseDown(with event: NSEvent) {
         guard let i = index(event) else { return }
-        let b = buttons[i]
+        press = (i, convert(event.locationInWindow, from: nil))
         let pulse = CABasicAnimation(keyPath: "transform.scale")
         pulse.fromValue = 0.88
         pulse.toValue = 1
         pulse.duration = 0.18
-        b.add(pulse, forKey: "pulse")
+        buttons[i].add(pulse, forKey: "pulse")
         SoundPlayer.shared.play(.select)
-        onClick?(apps[i])
     }
 }

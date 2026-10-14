@@ -122,6 +122,15 @@ final class ShellController: NSObject {
         dock.contentView = dv
         dv.onClick = { [weak self] app in self?.activate(app) }
         dv.onContext = { [weak self] app, rect in self?.showContext(for: app, from: rect) }
+        dv.onFolder = { [weak self] app, rect in self?.showFolder(app, from: rect) }
+        dv.onMove = { from, to in DockStore.shared.move(from: from, to: to) }
+        dv.onRemove = { app in DockStore.shared.remove(app.url.standardizedFileURL.path) }
+        dv.onDrop = { urls, index in
+            for (offset, url) in urls.enumerated() { DockStore.shared.add(url, at: index + offset) }
+        }
+        if DockStore.shared.onChange == nil {
+            DockStore.shared.onChange = { [weak self] in self?.refresh() }
+        }
         dockPanel = dock
         dockView = dv
 
@@ -405,12 +414,95 @@ final class ShellController: NSObject {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { AXMenus.press(node) }
     }
 
+    /// Runs a dock edit right away, keeping the launcher open so you can keep arranging.
+    private func performEdit(_ node: AXMenus.Node) {
+        SoundPlayer.shared.play(.select)
+        AXMenus.press(node)
+    }
+
+    /// Click on a dock folder: its newest items (like the Downloads stack), read off the main thread.
+    private func showFolder(_ app: ShellApp, from rect: NSRect) {
+        guard let dock = dockPanel, let screen = dock.screen else { return }
+        if menus.isOpen { menus.hide(); return }
+        let folder = app.url
+        let sort = DockStore.shared.items.first { $0.path == folder.standardizedFileURL.path }?.sort ?? "name"
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            let nodes = ShellController.folderNodes(folder, sort: sort)
+            DispatchQueue.main.async {
+                guard let self, self.visible else { return }
+                self.menus.show(nodes, title: app.name, anchor: rect, screen: screen, theme: self.theme, level: dock.level,
+                                rising: true) { [weak self] node in self?.perform(node) }
+            }
+        }
+    }
+
+    /// A folder's items as menu nodes: subfolders become submenus (two levels deep), files and
+    /// apps (aliases too) open on click, then "Open in Finder". Sorted by name, or newest first.
+    static func folderNodes(_ folder: URL, sort: String = "name", depth: Int = 0, limit: Int = 40) -> [AXMenus.Node] {
+        let keys: [URLResourceKey] = [.addedToDirectoryDateKey, .contentModificationDateKey, .isDirectoryKey, .isPackageKey, .isHiddenKey]
+        let open = AXMenus.Node.action("Open in Finder", icon: "sf:folder") { NSWorkspace.shared.open(folder) }
+        guard let entries = try? FileManager.default.contentsOfDirectory(at: folder, includingPropertiesForKeys: keys, options: [.skipsHiddenFiles]) else {
+            // Most likely macOS privacy protection (Downloads, Documents, Desktop) that hasn't been allowed yet.
+            return [AXMenus.Node(title: "Couldn't read this folder", enabled: false),
+                    .action("Open Privacy Settings…") {
+                        NSWorkspace.shared.open(URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_FilesAndFolders")!)
+                    }, .separatorLine, open]
+        }
+        func values(_ u: URL) -> URLResourceValues? { try? u.resourceValues(forKeys: Set(keys)) }
+        // Finder's custom-icon files ("Icon\r") are hidden by flag, not by a leading dot.
+        let visible = entries.filter { values($0)?.isHidden != true && $0.lastPathComponent != "Icon\r" }
+        let sorted: [URL] = sort == "added"
+            ? visible.sorted { (values($0)?.addedToDirectoryDate ?? .distantPast) > (values($1)?.addedToDirectoryDate ?? .distantPast) }
+            : visible.sorted { $0.lastPathComponent.localizedStandardCompare($1.lastPathComponent) == .orderedAscending }
+        var nodes: [AXMenus.Node] = []
+        for u in sorted.prefix(limit) {
+            let v = values(u)
+            let name = u.pathExtension == "app" ? u.deletingPathExtension().lastPathComponent : FileManager.default.displayName(atPath: u.path)
+            if v?.isDirectory == true && v?.isPackage != true && depth < 2 {
+                nodes.append(.submenu(name, icon: "app:" + u.path, folderNodes(u, sort: sort, depth: depth + 1, limit: limit)))
+            } else {
+                nodes.append(.action(name, icon: "app:" + u.path) { NSWorkspace.shared.open(u) })
+            }
+        }
+        if nodes.isEmpty { nodes.append(AXMenus.Node(title: "Empty", enabled: false)) }
+        if sorted.count > limit {
+            nodes.append(.action("\(sorted.count - limit) more in Finder…") { NSWorkspace.shared.open(folder) })
+        }
+        return nodes + [.separatorLine, open]
+    }
+
     /// Right-click on a dock app: its windows, then Open/Show, Show in Finder, Hide and Quit.
     private func showContext(for app: ShellApp, from rect: NSRect) {
         guard let dock = dockPanel, let screen = dock.screen else { return }
         if menus.isOpen { menus.hide(); return }
         let running = app.bundleID.flatMap { NSRunningApplication.runningApplications(withBundleIdentifier: $0).first }
         var nodes: [AXMenus.Node] = []
+        let path = app.url.standardizedFileURL.path
+        let store = DockStore.shared
+        let pinnedIndex = store.items.firstIndex { $0.path == path }
+        var edits: [AXMenus.Node] = []
+        if let i = pinnedIndex {
+            edits.append(.action("Move Left", enabled: i > 0) { store.move(from: i, to: i - 1) })
+            edits.append(.action("Move Right", enabled: i < store.items.count - 1) { store.move(from: i, to: i + 1) })
+            edits.append(.action("Remove from Dock") { store.remove(path) })
+        } else {
+            edits.append(.action("Keep in Dock") { store.add(app.url) })
+        }
+        if app.folder {
+            let sort = pinnedIndex.flatMap { store.items[$0].sort } ?? "name"
+            nodes = [.action("Open") { NSWorkspace.shared.open(app.url) },
+                     .action("Show in Finder") { NSWorkspace.shared.activateFileViewerSelecting([app.url]) },
+                     .separatorLine,
+                     .action("Sort by Name", checked: sort == "name") { store.setSort(path, "name") },
+                     .action("Sort by Date Added", checked: sort == "added") { store.setSort(path, "added") },
+                     .separatorLine] + edits
+            edits += [nodes[3], nodes[4]]
+            let editTitles = Set(edits.map(\.title))
+            menus.show(nodes, title: app.name, anchor: rect, screen: screen, theme: theme, level: dock.level, rising: true) { [weak self] node in
+                editTitles.contains(node.title) ? self?.performEdit(node) : self?.perform(node)
+            }
+            return
+        }
         if let running {
             let windows = ShellController.windows(of: running)
             nodes += windows.map { w in
@@ -426,13 +518,17 @@ final class ShellController: NSObject {
             nodes.append(.action("Open") { AppOpener.open(app.url, bundleID: app.bundleID) })
         }
         nodes.append(.action("Show in Finder") { NSWorkspace.shared.activateFileViewerSelecting([app.url]) })
+        nodes.append(.separatorLine)
+        nodes += edits
         if let running {
             nodes.append(.separatorLine)
             nodes.append(.action(running.isHidden ? "Unhide" : "Hide") { running.isHidden ? running.unhide() : running.hide() })
             nodes.append(.action("Quit") { running.terminate() })
         }
+        let editTitles = Set(edits.map(\.title))
         menus.show(nodes, title: app.name, anchor: rect, screen: screen, theme: theme, level: dock.level, rising: true) { [weak self] node in
-            self?.perform(node)
+            // Dock edits happen in place (the launcher stays open); the rest act on the app.
+            editTitles.contains(node.title) ? self?.performEdit(node) : self?.perform(node)
         }
     }
 
@@ -515,15 +611,13 @@ final class ShellController: NSObject {
         return out
     }
 
+    /// The dock's own pinned apps and folders (DockStore), skipping ones that no longer exist.
     private func dockApps() -> [ShellApp] {
-        guard let raw = CFPreferencesCopyAppValue("persistent-apps" as CFString, "com.apple.dock" as CFString) as? [[String: Any]] else { return [] }
-        return raw.compactMap { item in
-            guard let tile = item["tile-data"] as? [String: Any], let files = tile["file-data"] as? [String: Any],
-                  let value = files["_CFURLString"] as? String,
-                  let url = URL(string: value), url.isFileURL else { return nil }
-            let id = tile["bundle-identifier"] as? String ?? Bundle(url: url)?.bundleIdentifier
-            let name = tile["file-label"] as? String ?? url.deletingPathExtension().lastPathComponent
-            return ShellApp(name: name, url: url, bundleID: id, pinned: true)
+        DockStore.shared.items.compactMap { item in
+            guard FileManager.default.fileExists(atPath: item.path) else { return nil }
+            let url = item.url
+            return ShellApp(name: FileManager.default.displayName(atPath: item.path), url: url,
+                            bundleID: item.isFolder ? nil : Bundle(url: url)?.bundleIdentifier, pinned: true, folder: item.isFolder)
         }
     }
 }

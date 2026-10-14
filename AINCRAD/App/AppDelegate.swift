@@ -75,6 +75,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             ExpStore.shared.gain(10)
         }
         BattleLog.shared.start()
+        DockStore.shared.load()
         ExpStore.shared.start()
         launcher?.recents.start()
         commandDeck.openLauncher = { [weak self] in self?.launcher?.open() }

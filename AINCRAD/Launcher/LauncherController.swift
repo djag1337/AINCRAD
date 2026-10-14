@@ -307,6 +307,18 @@ final class LauncherController: NSObject, NSWindowDelegate, MenuViewDelegate {
         return NSWorkspace.shared.runningApplications.first { $0.bundleURL?.standardizedFileURL == url.standardizedFileURL }
     }
 
+    /// The file an app or folder item points at, for the dock's Add/Remove actions.
+    private func dockPath(_ item: MenuItem) -> String? {
+        switch item.action {
+        case .app(let t): return ActionRunner.appURL(t)?.standardizedFileURL.path
+        case .open(let p):
+            let path = URL(fileURLWithPath: (p as NSString).expandingTildeInPath).standardizedFileURL.path
+            var dir: ObjCBool = false
+            return FileManager.default.fileExists(atPath: path, isDirectory: &dir) && dir.boolValue ? path : nil
+        default: return nil
+        }
+    }
+
     func menuView(_ view: MenuView, contextActionsFor item: MenuItem) -> [MenuView.ContextAction] {
         typealias A = MenuView.ContextAction
         var out: [A] = []
@@ -321,6 +333,11 @@ final class LauncherController: NSObject, NSWindowDelegate, MenuViewDelegate {
         case .url:
             out.append(A(id: "copy", title: "Copy Link", symbol: "link"))
         default: break
+        }
+        if let path = dockPath(item) {
+            out.append(DockStore.shared.contains(path)
+                ? A(id: "undock", title: "Remove from Dock", symbol: "dock.arrow.down.rectangle")
+                : A(id: "dock", title: "Add to Dock", symbol: "dock.arrow.up.rectangle"))
         }
         let inMenu = MenuTree.find(item.id, in: store.menu.root) != nil
         let inFavorites = favoritesID.flatMap { MenuTree.find($0, in: store.menu.root)?.children?.contains { $0.id == item.id } } ?? false
@@ -342,6 +359,10 @@ final class LauncherController: NSObject, NSWindowDelegate, MenuViewDelegate {
             }
         }
         switch action {
+        case "dock":
+            if let u = url() { DockStore.shared.add(u) }
+        case "undock":
+            if let p = dockPath(item) { DockStore.shared.remove(p) }
         case "open":
             menuView(view, activate: item)
         case "finder":

@@ -66,3 +66,54 @@ final class QuestOrderTests: XCTestCase {
         XCTAssertEqual(QuestContent.countdown(to: now.addingTimeInterval(95 * 60), now: now), "in 1h 35m")
     }
 }
+
+final class DockStoreTests: XCTestCase {
+    private var dir: URL!
+
+    override func setUp() {
+        dir = FileManager.default.temporaryDirectory.appendingPathComponent("dock-tests-\(UUID().uuidString)")
+        try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+    }
+
+    override func tearDown() { try? FileManager.default.removeItem(at: dir) }
+
+    func testSeedThenEdits() {
+        let store = DockStore(url: dir.appendingPathComponent("dock.json"))
+        store.load(seed: { [.init(path: "/A.app"), .init(path: "/B.app")] })
+        XCTAssertEqual(store.items.map(\.path), ["/A.app", "/B.app"])
+        store.add(URL(fileURLWithPath: "/C"), at: 1)
+        XCTAssertEqual(store.items.map(\.path), ["/A.app", "/C", "/B.app"])
+        store.add(URL(fileURLWithPath: "/A.app"))          // re-adding moves, never duplicates
+        XCTAssertEqual(store.items.map(\.path), ["/C", "/B.app", "/A.app"])
+        store.move(from: 2, to: 0)
+        XCTAssertEqual(store.items.map(\.path), ["/A.app", "/C", "/B.app"])
+        store.setSort("/C", "added")
+        store.remove("/B.app")
+        // A fresh store reads the saved file instead of seeding again.
+        let again = DockStore(url: dir.appendingPathComponent("dock.json"))
+        again.load(seed: { XCTFail("seeded twice"); return [] })
+        XCTAssertEqual(again.items.map(\.path), ["/A.app", "/C"])
+        XCTAssertEqual(again.items[1].sort, "added")
+    }
+
+    func testFolderNodesNameOrderSubmenusAndHiddenIcon() throws {
+        let fm = FileManager.default
+        let root = dir.appendingPathComponent("Dockside")
+        try fm.createDirectory(at: root.appendingPathComponent("Games"), withIntermediateDirectories: true)
+        try Data().write(to: root.appendingPathComponent("Games/Balatro.app"))
+        try Data().write(to: root.appendingPathComponent("b.txt"))
+        try Data().write(to: root.appendingPathComponent("a.txt"))
+        let icon = root.appendingPathComponent("Icon\r")
+        try Data().write(to: icon)
+        var hidden = URLResourceValues(); hidden.isHidden = true
+        var iconURL = icon; try iconURL.setResourceValues(hidden)
+        let nodes = ShellController.folderNodes(root)
+        let titles = nodes.map(\.title)
+        XCTAssertEqual(Array(titles.prefix(3)), ["a.txt", "b.txt", "Games"])
+        XCTAssertFalse(titles.contains("Icon\r"))
+        XCTAssertEqual(titles.last, "Open in Finder")
+        let games = try XCTUnwrap(nodes.first { $0.title == "Games" })
+        XCTAssertTrue(games.hasChildren)
+        XCTAssertEqual(AXMenus.children(games).first?.title, "Balatro")   // ".app" dropped
+    }
+}

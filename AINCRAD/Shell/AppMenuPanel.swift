@@ -13,13 +13,15 @@ enum AXMenus {
         var hasChildren = false
         var kids: [Node]?
         var run: (() -> Void)?
+        /// IconCache spec ("app:<path>", "sf:<symbol>") drawn before the title.
+        var icon: String?
         var separator: Bool { title.isEmpty && !hasChildren }
 
-        static func action(_ title: String, enabled: Bool = true, checked: Bool = false, _ run: @escaping () -> Void) -> Node {
-            Node(title: title, enabled: enabled, checked: checked, run: run)
+        static func action(_ title: String, enabled: Bool = true, checked: Bool = false, icon: String? = nil, _ run: @escaping () -> Void) -> Node {
+            Node(title: title, enabled: enabled, checked: checked, run: run, icon: icon)
         }
-        static func submenu(_ title: String, _ kids: [Node]) -> Node {
-            Node(title: title, enabled: !kids.isEmpty, hasChildren: true, kids: kids)
+        static func submenu(_ title: String, icon: String? = nil, _ kids: [Node]) -> Node {
+            Node(title: title, enabled: !kids.isEmpty, hasChildren: true, kids: kids, icon: icon)
         }
         static let separatorLine = Node(title: "")
     }
@@ -307,7 +309,18 @@ private final class AppMenuView: NSView {
         if node.checked { row.addSublayer(label("✓", body, CGRect(x: 6, y: mid - 10, width: 14, height: 20), .center)) }
         let right = node.hasChildren ? "›" : node.shortcut
         let rightW: CGFloat = right.isEmpty ? 0 : (node.hasChildren ? 16 : 64)
-        row.addSublayer(label(node.title, body, CGRect(x: 22, y: mid - 10, width: width - 40 - rightW, height: 21), .left))
+        var textX: CGFloat = 22
+        if let spec = node.icon {
+            let s: CGFloat = 20
+            let icon = CALayer()
+            icon.frame = CGRect(x: 18, y: mid - s / 2, width: s, height: s)
+            icon.contents = IconCache.shared.image(spec, size: s, tint: nil, scale: scale)
+            icon.contentsGravity = .resizeAspect
+            icon.opacity = node.enabled ? 1 : 0.4
+            row.addSublayer(icon)
+            textX = 46
+        }
+        row.addSublayer(label(node.title, body, CGRect(x: textX, y: mid - 10, width: width - textX - 18 - rightW, height: 21), .left))
         if !right.isEmpty {
             let f = node.hasChildren ? ThemeFonts.body(theme, 18) : ThemeFonts.body(theme, 13)
             row.addSublayer(label(right, f, CGRect(x: width - 16 - rightW, y: mid - (node.hasChildren ? 11 : 8), width: rightW, height: 22), .right))

@@ -5,6 +5,8 @@ struct ShellApp: Equatable {
     var url: URL
     var bundleID: String?
     var pinned: Bool
+    /// A folder (Downloads and so on): clicking shows its newest files instead of launching.
+    var folder = false
 }
 
 /// A borderless panel above the launcher that never takes key status, so clicking the shell
