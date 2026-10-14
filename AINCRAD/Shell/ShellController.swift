@@ -465,6 +465,12 @@ final class ShellController: NSObject {
     var revealMenus = false
     private var launcherOpen = false
 
+    /// Screenshot mode (launch with AINCRAD_DEMO=1): a stock dock and no open-app name.
+    static let demo = ProcessInfo.processInfo.environment["AINCRAD_DEMO"] == "1"
+    private static let demoApps = ["/System/Library/CoreServices/Finder.app", "/Applications/Safari.app", "/System/Applications/Mail.app",
+                                   "/System/Applications/Messages.app", "/System/Applications/Music.app", "/System/Applications/Photos.app",
+                                   "/System/Applications/Calendar.app", "/System/Applications/App Store.app", "/System/Applications/System Settings.app"]
+
     static let dockHeight = ShellDockView.size + 24 + ShellDockView.labelRoom
     /// Height of the top bar on `screen`: the menu bar it covers, so windows below are never hidden.
     static func barHeight(for screen: NSScreen) -> CGFloat {
@@ -759,7 +765,8 @@ final class ShellController: NSObject {
         df.dateFormat = "EEE d MMM  ·  h:mm a"
         let clock = df.string(from: Date())
         for bar in bars {
-            bar.view.update(player: name, hp: hp, lv: lv, app: appName, icon: front?.icon, status: status, clock: clock)
+            bar.view.update(player: name, hp: hp, lv: lv, app: ShellController.demo ? "" : appName,
+                            icon: ShellController.demo ? nil : front?.icon, status: status, clock: clock)
         }
     }
 
@@ -869,6 +876,11 @@ final class ShellController: NSObject {
     }
 
     private func shellApps() -> [ShellApp] {
+        if ShellController.demo {
+            return ShellController.demoApps.map(URL.init(fileURLWithPath:)).filter { FileManager.default.fileExists(atPath: $0.path) }.map {
+                ShellApp(name: $0.deletingPathExtension().lastPathComponent, url: $0, bundleID: Bundle(url: $0)?.bundleIdentifier, pinned: true)
+            }
+        }
         var out = dockApps(), seen = Set(out.compactMap(\.bundleID))
         for app in NSWorkspace.shared.runningApplications where app.activationPolicy == .regular && app.bundleIdentifier != Bundle.main.bundleIdentifier {
             guard let url = app.bundleURL, let id = app.bundleIdentifier, seen.insert(id).inserted else { continue }

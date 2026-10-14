@@ -48,3 +48,12 @@ AINCRADTests         unit tests
 Design rules: rendering reads every visual value from `Theme` (the SAO look is just the default
 data). Animation timing is decided only in `Motion`. Nothing runs on a timer unless something
 visible needs it.
+
+## Screenshots
+
+Launch with `AINCRAD_DEMO=1` to get a stock dock (Finder, Safari, Mail, Music…) and no open-app
+name in the top bar, so captures don't show your own apps:
+
+```sh
+open --env AINCRAD_DEMO=1 -a /Applications/AINCRAD.app
+```
