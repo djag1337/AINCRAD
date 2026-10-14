@@ -56,6 +56,15 @@ and regular game apps, all in one Games menu.
 
 ---
 
+## Where it's heading
+
+The long-term plan is a full **shell replacement**: quick SAO menus for everything you do on a
+Mac. That means system controls (sound, Wi-Fi, brightness, Focus), changing settings without
+opening System Settings, new reminders and events, quick notes, files, windows and media, all
+without leaving the menu. [docs/ROADMAP.md](docs/ROADMAP.md) has the plan and what macOS allows.
+
+---
+
 ## Getting started
 
 You'll need macOS 14 or newer, Xcode 16, and [XcodeGen](https://github.com/yonaskolb/XcodeGen).
@@ -137,6 +146,7 @@ menus, hiding the Dock), so for now you build it yourself.
 - [Themes](docs/THEMES.md)
 - [Widgets](docs/WIDGETS.md)
 - [Extensions and the block language](docs/EXTENSIONS.md)
+- [Roadmap](docs/ROADMAP.md): the plan for a full shell replacement
 - [Feature status](docs/STATUS.md): what's tested, what isn't, and known limitations
 - [Performance](docs/PERFORMANCE.md)
 - [Developing](docs/DEVELOPMENT.md): building, signing, tests and project layout
