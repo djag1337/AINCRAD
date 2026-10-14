@@ -104,6 +104,7 @@ visible needs it.
 - ✅ Desktop editor: select, move, resize (tested live); rotate, nudge, delete, inspector, undo/redo, named layouts (built)
 - ✅ Per-display layouts; sampling pauses when covered (logged)
 - ✅ HUD widgets: any widget can live in the HUD (shown above the launcher on its display, sliding in from the edge); HUD opacity slider + per-widget opacity; starter set (clock, CPU/MEM/disk, network) (screenshots)
+- 🟡 Quest log widget: today's calendar events + due reminders, next event as Floor Boss with a countdown bar (access + empty state seen; not yet seen with real events)
 - 🟡 Display disconnect/reconnect, display sleep pause (code paths exist; not tested)
 
 **Extension Studio & catalog**
