@@ -83,13 +83,17 @@ final class QuestStore {
         }
     }
 
-    private func publish(_ list: [Quest]) {
-        // Overdue first, then by time; all-day and undated last.
-        let sorted = list.sorted { a, b in
+    /// Overdue first, then by time; all-day and undated last.
+    static func ordered(_ list: [Quest]) -> [Quest] {
+        list.sorted { a, b in
             if a.overdue != b.overdue { return a.overdue }
             let ka = a.allDay ? .distantFuture : (a.start ?? .distantFuture), kb = b.allDay ? .distantFuture : (b.start ?? .distantFuture)
             return ka < kb
         }
+    }
+
+    private func publish(_ list: [Quest]) {
+        let sorted = QuestStore.ordered(list)
         guard sorted != quests else { return }
         quests = sorted
         listeners.values.forEach { $0() }
