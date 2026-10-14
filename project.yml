@@ -1,0 +1,80 @@
+name: AINCRAD
+options:
+  bundleIdPrefix: com.djag
+  deploymentTarget:
+    macOS: "14.0"
+  createIntermediateGroups: true
+settings:
+  base:
+    SWIFT_VERSION: "5.0"
+    MACOSX_DEPLOYMENT_TARGET: "14.0"
+    DEVELOPMENT_TEAM: UWC6NUWUHW
+    CODE_SIGN_STYLE: Manual
+    CODE_SIGN_IDENTITY: "Apple Development"
+    ENABLE_HARDENED_RUNTIME: NO
+    MARKETING_VERSION: "0.2.0"
+    CURRENT_PROJECT_VERSION: "2"
+targets:
+  AINCRAD:
+    type: application
+    platform: macOS
+    sources:
+      - path: AINCRAD
+        excludes: ["Resources/Plugins", "Resources/Plugins/**"]
+      # Folder reference, so each plugin keeps its own folder inside the app.
+      - path: AINCRAD/Resources/Plugins
+        type: folder
+        buildPhase: resources
+    info:
+      path: AINCRAD/Info.plist
+      properties:
+        CFBundleDisplayName: AINCRAD
+        CFBundleShortVersionString: "$(MARKETING_VERSION)"
+        CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
+        LSUIElement: true
+        LSApplicationCategoryType: public.app-category.utilities
+        NSCalendarsFullAccessUsageDescription: "The Quest log widget lists today's calendar events."
+        NSRemindersFullAccessUsageDescription: "The Quest log widget lists reminders due today."
+        NSCalendarsUsageDescription: "The Quest log widget lists today's calendar events."
+        NSRemindersUsageDescription: "The Quest log widget lists reminders due today."
+        NSHumanReadableCopyright: "AINCRAD — an SAO-inspired launcher. Not affiliated with Sword Art Online rights holders."
+        CFBundleURLTypes:
+          - CFBundleURLName: com.djag.aincrad
+            CFBundleURLSchemes: [aincrad]
+        UTExportedTypeDeclarations:
+          - UTTypeIdentifier: com.djag.aincrad.package
+            UTTypeDescription: AINCRAD Extension
+            UTTypeConformsTo: [public.zip-archive, public.data]
+            UTTypeTagSpecification:
+              public.filename-extension: [aincrad]
+        CFBundleDocumentTypes:
+          - CFBundleTypeName: AINCRAD Extension
+            CFBundleTypeRole: Viewer
+            LSHandlerRank: Owner
+            LSItemContentTypes: [com.djag.aincrad.package]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.djag.aincrad
+        PRODUCT_NAME: AINCRAD
+        ENABLE_APP_SANDBOX: NO
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+  AINCRADTests:
+    type: bundle.unit-test
+    platform: macOS
+    sources: [AINCRADTests]
+    dependencies:
+      - target: AINCRAD
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.djag.aincrad.tests
+        TEST_HOST: "$(BUILT_PRODUCTS_DIR)/AINCRAD.app/Contents/MacOS/AINCRAD"
+        BUNDLE_LOADER: "$(TEST_HOST)"
+        GENERATE_INFOPLIST_FILE: YES
+schemes:
+  AINCRAD:
+    build:
+      targets:
+        AINCRAD: all
+        AINCRADTests: [test]
+    test:
+      targets: [AINCRADTests]
