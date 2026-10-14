@@ -1,158 +1,148 @@
 # AINCRAD
 
-A native macOS launcher in the style of Sword Art Online's floating system menu, with the
-customisation depth of SAO Utils 2: Progressive: a cascading SAO menu, desktop widgets with a
-visual editor, a theme engine, declarative extensions, and a local productivity command center. Built in Swift with AppKit and Core
-Animation (SwiftUI for the settings window only). No web views and no third-party dependencies.
+**The Sword Art Online system menu, on your Mac.**
 
-Unofficial fan project, not affiliated with the Sword Art Online rights holders. The bundled
-sounds, icon and font choice are original or system-provided.
+Press <kbd>⌥</kbd> <kbd>`</kbd> (or swipe down on a Magic Mouse) and a column of glowing circles
+drops in beside your pointer. Pick one and the menu cascades out to the side, exactly like the
+floating menu in SAO. From there you can launch apps and games, search your Mac, read your
+calendar as a quest log, and run the menus of whatever app you were just using.
 
-## Build & install
+It's a native Swift app, built on AppKit and Core Animation. It doesn't use web views or
+third-party libraries, and it's light enough to leave running all day on an old Intel Mac mini.
 
-Requirements: macOS 14+, Xcode 16, [XcodeGen](https://github.com/yonaskolb/XcodeGen) (`brew install xcodegen`).
+<!-- Hero screenshot: drop a clean capture at docs/images/hero.png and uncomment the line below. -->
+<!-- ![AINCRAD open on the desktop](docs/images/hero.png) -->
+
+> Unofficial fan project. Not affiliated with Sword Art Online or its rights holders.
+
+---
+
+## What it does
+
+**The launcher.** Root circles, cascading columns, an info panel, sounds and SAO-style
+animation. Type while it's open to search apps, files, menu items and System Settings, or to do
+quick maths. Right-click anything for actions like Show in Finder, Quit or Add to Favorites.
+
+**A HUD that opens with it.** Corner brackets sweep out to the edges of the screen, and your HUD
+widgets slide in: a clock, CPU/memory/disk gauges, a quest log of today's events and reminders
+(the next one is the *Floor Boss*), and anything else you add. HUD opacity is adjustable,
+per widget and for the whole layer.
+
+**Its own top bar and dock.** While the launcher is open, an SAO bar sits over the menu bar.
+It shows your name, HP and level, the app you came from, and the time. Click your name to get
+that app's real menus (File, Edit, View…). Right-click the bar for your menu bar icons
+(Wi-Fi, sound, Bluetooth), and right-click the dock for an app's windows, Hide and Quit.
+Apple's Dock and menu bar can stay hidden the whole time AINCRAD runs.
+
+**Widgets on the desktop.** Clocks, stat bars, SAO HP bars, a game shelf with cover art, app
+buttons, text and images. Drag them around, resize, rotate, and save layouts per display.
+
+**Themes.** Every colour, size, curve and animation timing lives in a theme file. It ships with
+Aincrad Classic (white and orange, like the show) and a dark version, and more are a click away.
+
+| | | | |
+|:-:|:-:|:-:|:-:|
+| ![Aincrad Classic](docs/images/themes/aincrad-classic.png) | ![Dark Aincrad](docs/images/themes/aincrad-dark.png) | ![Gun Gale](docs/images/themes/gun-gale.png) | ![Alfheim](docs/images/themes/alfheim.png) |
+| Aincrad Classic | Dark Aincrad | Gun Gale | Alfheim |
+
+**Extensions you build with blocks.** The Extension Studio uses Scratch-style blocks: "when
+Steam opens → switch theme to Gun Gale", or "every 5 seconds → set the HP gauge to free CPU".
+Sixteen extensions come preinstalled (settings shortcuts, quick folders, player stats, a break
+reminder, dice and more), and the [community catalog](https://github.com/djag1337/AINCRAD-catalog)
+has more you can install from inside the app.
+
+**A game shelf.** Steam (every library folder), Heroic (GOG and Epic), Prism Launcher instances
+and regular game apps, all in one Games menu.
+
+---
+
+## Getting started
+
+You'll need macOS 14 or newer, Xcode 16, and [XcodeGen](https://github.com/yonaskolb/XcodeGen).
 
 ```sh
-./scripts/build.sh               # Release build → /Applications/AINCRAD.app
-./scripts/test.sh                # 68 unit tests
-./scripts/measure_idle.sh 300    # sample the running app's idle CPU/memory for 5 min
-swift scripts/make_sounds.swift AINCRAD/Resources/Sounds   # regenerate the sounds
-swift scripts/make_icon.swift AINCRAD/Assets.xcassets      # regenerate the app icon
+brew install xcodegen
+git clone https://github.com/djag1337/AINCRAD.git
+cd AINCRAD
+./scripts/build.sh
 ```
 
-`project.yml` is the source of truth for targets and build settings. `xcodegen generate`
-recreates `AINCRAD.xcodeproj` from it, and the scripts do this for you. Source files can be
-edited freely in Xcode, and new files dropped into `AINCRAD/` are picked up on the next generate.
+That builds a Release copy and installs it to `/Applications/AINCRAD.app`. Open it and a small
+◎ appears in your menu bar (there's no Dock icon). Press <kbd>⌥</kbd> <kbd>`</kbd> to open the
+menu.
 
-Build output goes to `~/Library/Caches/AINCRAD-build`, **not** the project folder. `~/Documents`
-is in iCloud Drive here, and iCloud's file attributes make `codesign` fail (it would also upload
-the build products).
+From there:
 
-**Signing.** The project signs with the local *Apple Development* certificate (team
-`UWC6NUWUHW`), so the app's identity stays stable across rebuilds. macOS ties the Accessibility
-grant (needed for the mouse gesture) to that identity; an ad-hoc signed app would lose the grant
-on every rebuild. The app runs on this Mac but isn't notarised for distribution. To build on
-another Mac, change `DEVELOPMENT_TEAM` in `project.yml`, or use `CODE_SIGN_IDENTITY: "-"`.
+- **Settings** live under the ◎ menu, or under the ⚙ circle inside the launcher.
+- **Change the menu** in Settings › Menu (drag to reorder, nest submenus, add apps, folders,
+  websites or Shortcuts).
+- **Add widgets** in Settings › Widgets. The *Add to* switch puts them on the desktop or in the HUD.
+- **Turn on extensions** in Settings › Extensions. Their menus show up under
+  Command Center › Extensions.
 
-## Use
+Building on a different Mac? Change `DEVELOPMENT_TEAM` in `project.yml` to your own team, or
+set `CODE_SIGN_IDENTITY: "-"` for an unsigned local build. [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md)
+has the details.
 
-Open `/Applications/AINCRAD.app` (opening it again shows Settings). A ◎ icon appears in the
-menu bar; there's no Dock icon.
+---
 
-* **⌥`** opens the menu at the pointer. With the gesture on, so does holding both mouse buttons
-  and sliding down.
-* Menu bar icon → **Settings…** configures everything: shortcut, gesture, menu, themes,
-  widgets, extensions, per-display accents, login item.
+## Q&A
 
-Docs: [configuration & menu](docs/CONFIGURATION.md) · [themes](docs/THEMES.md) ·
-[widgets](docs/WIDGETS.md) · [extensions](docs/EXTENSIONS.md) · [performance](PERFORMANCE.md)
+**Is this SAO Utils for Mac?**
+It's inspired by it, but it's written from scratch for macOS. SAO Utils plug-ins are Windows
+code, so they can't run here. The block-based extensions are the Mac equivalent, and they're a
+lot easier to make.
 
-## Project layout
+**Does it slow my Mac down?**
+It's designed not to. Nothing animates or polls while the launcher is closed, widgets stop
+sampling when they're covered, and the launcher opens in a few milliseconds.
+[docs/PERFORMANCE.md](docs/PERFORMANCE.md) has the measurements.
 
-```
-AINCRAD/App          main, AppDelegate (menu bar, activation, URL scheme), LaunchGuard (safe mode)
-AINCRAD/Config       settings/menu/theme models, tolerant JSON, MenuTree edits, store, recents
-AINCRAD/Input        Carbon hotkeys, item shortcuts, GestureRecognizer (pure) + GestureMonitor (event tap)
-AINCRAD/Launcher     panel, MenuView (layers + input), InfoPanel, Motion (animation system),
-                     MenuLayout (pure geometry), IconCache, ActionRunner, controller
-AINCRAD/Widgets      model, DataHub (system readings), renderers, window/editor, manager
-AINCRAD/Extensions   manifest, validation, permissions, contributions
-AINCRAD/Scripts      block language (Blocks), interpreter (ScriptEngine), events (ScriptRuntime), ScriptTree edits, message pop-up
-AINCRAD/Studio       Extension Studio window and block views
-AINCRAD/Settings     SwiftUI settings: General, Menu, Themes, Widgets, Extensions, Browse, About
-AINCRAD/Support      logging, colours, sounds, frame probe
-AINCRADTests         68 unit tests
-```
+**Why does it ask for Accessibility access?**
+For the features that need to see or press things in other apps: the mouse gesture, reading an
+app's menus for the top bar, listing windows in the dock, and mirroring notifications as SAO
+bubbles. Everything else works without it.
 
-Design rules: rendering reads every visual value from `Theme` (the SAO look is just the default
-data). Animation timing is decided only in `Motion`. Nothing runs on a timer unless something
-visible needs it.
+**Why does it want my Calendar and Reminders?**
+Only for the quest log widget. Remove that widget and it never reads either.
 
-## Feature checklist
+**Can it hide Apple's Dock and menu bar?**
+Yes. Settings › General › AINCRAD Shell. Your original settings are saved first and come back
+when you turn it off or quit.
 
-✅ working, tested as described · 🟡 built, partly tested or untested · ⬜ not built
+**Are extensions safe to install?**
+Extensions are data, not code. A script is a tree of blocks that AINCRAD's own interpreter runs
+with step, time and loop limits. Anything that touches the network or files outside the
+extension has to ask, and you approve it when you turn the extension on. Catalog downloads are
+checked against a SHA-256.
 
-**Launcher**
-- ✅ Menu bar utility; Pause / Quit / Settings / Theme / Reduce Motion / Sounds / Widgets in its menu
-- ✅ Global shortcut (no permissions; real key presses tested), recorder in Settings, conflicts reported
-- ✅ SAO cascading menu: root buttons, columns aligned to the selection, info panel, pointers, glow
-- ✅ Mouse hover, click, scroll, right-click back; keyboard arrows, Return, Esc (real input tested)
-- 🟡 Type-ahead letters (built, not exercised)
-- ✅ Opens on the display under the pointer, clamped on-screen, shifts left when columns overflow (both displays tested)
-- ✅ Launching apps (tested). 🟡 files/folders, URLs, Shortcuts, shell, builtins (built; parsing unit-tested)
-- ✅ Dynamic lists: all applications, recent apps, extension menus (unit-tested)
-- 🟡 Visibility conditions, per-item accent, per-item global shortcuts (built; not exercised live)
-- 🟡 Doesn't steal focus; shows over full-screen apps and on all Spaces (full-screen not tried)
+**How do I make a theme or an extension?**
+Themes: Settings › Themes, change anything, then Export. Extensions: open the Extension Studio
+from the ◎ menu, snap blocks together, press ▶ to test, then Publish.
+The docs cover [themes](docs/THEMES.md) and [extensions](docs/EXTENSIONS.md) in full.
 
-**Mouse gesture**
-- ✅ Gesture state machine: 9 unit tests (chords in both orders, replayed right-clicks, directions, timing)
-- 🟡 Live event tap: built, but **not run**. It needs you to grant Accessibility (see Known limitations)
+**Something broke and it won't open properly.**
+Hold <kbd>⌥</kbd> while launching to start in Safe Mode. AINCRAD also switches to Safe Mode by
+itself after two quick crashes. Logs are in `~/Library/Application Support/AINCRAD/logs/`.
 
-**Look & motion**
-- ✅ Classic (white/orange) and Dark themes; tilt, glow, per-display accent (screenshots)
-- 🟡 High-contrast adaptation (built, not tried with Increase contrast on)
-- ✅ Animation system: 4 presets, speed, per-step durations, Reduce Motion
-- ✅ Original sounds (6), per-event choice, volume, mute; app icon
+**Is it on the App Store?**
+No. It needs things the App Store sandbox doesn't allow (global hotkeys, reading other apps'
+menus, hiding the Dock), so for now you build it yourself.
 
-**Customisation**
-- ✅ Menu editor: add, duplicate, delete, move, indent, outdent, inspector, undo/redo, import/export, preview (core unit-tested; add + undo clicked live)
-- ✅ Theme editor: every value, undo/redo, duplicate/import/export/delete (unit-tested), preview
-- ✅ Backups before every save; broken files reported, never overwritten
+---
 
-**Widgets**
-- ✅ Clock, stat (CPU/memory/disk/battery/network/uptime as bar/ring/text), SAO HP bars, text, image, app shortcut, launcher button (rendered on the desktop)
-- ✅ Desktop editor: select, move, resize (tested live); rotate, nudge, delete, inspector, undo/redo, named layouts (built)
-- ✅ Per-display layouts; sampling pauses when covered (logged)
-- ✅ HUD widgets: any widget can live in the HUD (shown above the launcher on its display, sliding in from the edge); HUD opacity slider + per-widget opacity; starter set (clock, CPU/MEM/disk, network) (screenshots)
-- 🟡 Quest log widget: today's calendar events + due reminders, next event as Floor Boss with a countdown bar (access + empty state seen; not yet seen with real events)
-- 🟡 Display disconnect/reconnect, display sleep pause (code paths exist; not tested)
+## Docs
 
-**Extension Studio & catalog**
-- ✅ Scratch-style block language: 45 blocks in 7 categories, interpreter with step/time/loop limits and permission checks (16 unit tests)
-- ✅ Studio window: palette, drag-and-drop canvas, nested reporters, ▶ test with console, undo/redo (drag/drop, nesting and test run done with real mouse input)
-- ✅ Basics / Looks / Menus / Widgets / Publish sections; `.aincrad` export; double-click install with archive safety checks
-- ✅ Browse tab: catalog with previews, SHA-256-verified one-click install (theme and extension installed from it; gauge widget fed live by a block script)
-- ✅ Catalog published at github.com/djag1337/AINCRAD-catalog (local copy in `~/Documents/AINCRAD-catalog`): 6 themes, 5 block extensions, build tool; Browse uses it by default
+- [Configuration and menus](docs/CONFIGURATION.md)
+- [Themes](docs/THEMES.md)
+- [Widgets](docs/WIDGETS.md)
+- [Extensions and the block language](docs/EXTENSIONS.md)
+- [Feature status](docs/STATUS.md): what's tested, what isn't, and known limitations
+- [Performance](docs/PERFORMANCE.md)
+- [Developing](docs/DEVELOPMENT.md): building, signing, tests and project layout
+- [Changelog](CHANGELOG.md)
 
-**Everyday features**
-- ✅ Launcher Shell: full-width SAO top bar over the menu bar (player HP/LV, active app, CPU/MEM/BAT, clock; centre left clear for notch apps) and an SAO dock (glass circles, hover lift + name tag, running dots, pinned/running divider), each in its own non-key panel so clicks don't close the menu (screenshots; hover/click not yet exercised live)
-- ✅ Hide Apple's Dock / menu bar completely while AINCRAD runs (originals saved and restored on quit); confirmed by user
-- ✅ App menus in the SAO top bar: click the player block for the current app's real menus (Accessibility), submenus, shortcuts; commands run (confirmed by user)
-- ✅ Independent session-only switches for auto-hiding the Apple menu bar and Dock while the launcher is open
-- ✅ Command Center injected without changing the user's menu: context actions, local searchable clipboard history, Quick Capture inbox and workspace loadouts
-- ✅ Typed commands in launcher search: `timer 25`, `note …`, `paste …`, `workspace …`, `window left/right/max`
-- ✅ Text-selection actions through Accessibility: copy, capture, search, upper/lowercase; clipboard auto-paste returns to the previous app
-- ✅ Workspace capture/restoration: running apps plus window positions and sizes when Accessibility is available
-- ✅ Compact floating SAO target button on every Space; click to open AINCRAD, hover for active timer and clipboard status
-- ✅ Window tiling, lock screen, volume controls, Sound and Bluetooth controls
-- ✅ Local usage-ranked suggestions; productivity data stays in Application Support and common password managers are excluded from capture
-- ✅ SAO HUD frame (corner brackets, player bar with HP/LV, clock) around the screen while the launcher is open (screenshots)
-- ✅ Search: type in the launcher for apps, menu items, files (Spotlight), System Settings panes, math (Return copies) and web search (tested live)
-- ✅ Context actions: right-click an item for Open, Show in Finder, Quit, Copy Path/Link, Add to/Remove from Favorites, Hide (SAO-styled, screenshot)
-- ✅ Applications sorted into categories; tilt fixed for long lists
-- ✅ Game shelf: Steam (every library), Heroic (GOG/Epic), Prism Launcher instances and game apps, as a Games menu and a cover-art widget (screenshots)
-- ✅ Magic Mouse two-finger swipe (fired live, direction confirmed); hold right button and slide (unit-tested)
-- 🟡 Notification bubbles: bubble UI tested; mirroring real banners needs Accessibility and a real notification (not yet seen live)
-- ✅ Publish to catalog from the Studio and the theme editor (flow tested against a local git remote; not pushed for real)
-- ✅ 16 preinstalled extensions (off until enabled; validated by a unit test), also in the catalog; enabled extensions' menus appear under Command Center › Extensions
-- 🟡 Dock and launcher open apps like a Dock click (reopen event; un-minimizes via Accessibility if needed): built, not yet confirmed
-- ✅ Install Font… in the theme editor; separate text and title fonts (default Rajdhani + Orbitron)
+## Credits
 
-**Platform**
-- ✅ Safe mode (⌥ at launch, or automatic after two quick crashes) and a clean quit on SIGTERM (tested)
-- 🟡 Launch at login (toggle in Settings; not toggled in testing, since it changes your login items)
-- 🟡 VoiceOver announcements (built; not tested with VoiceOver running)
-- ✅ Extensions API v1: themes, menus, data sources, widget presets; validation, permissions and path-escape tests
-
-## Known limitations
-
-* **The mouse gesture hasn't been run live.** To try it: Settings › General › Mouse gesture →
-  turn it on → approve AINCRAD in System Settings › Privacy & Security › Accessibility.
-* While the gesture is on, right-clicks arrive about 90 ms late (adjustable); left clicks aren't affected.
-* No shortcut works while a password field (secure input) is focused. This is a macOS rule.
-* Your macOS desktop widgets (Notification Center) draw above AINCRAD widgets where they overlap.
-* AINCRAD widgets that update cost the compositor a little CPU each time over an animated
-  wallpaper. A clock with seconds measured about +2.7 points of WindowServer CPU; see PERFORMANCE.md.
-* Long lists near the bottom of a screen extend below it (rows fade out); scroll or use the keys.
-* Extensions are data-only by design. There's no built-in now-playing or weather widget; weather
-  can come from an extension data source.
+Made by **DjagDev**. The Rajdhani and Orbitron fonts are bundled under the
+SIL Open Font License (see `AINCRAD/Resources/Fonts`). Sounds and the app icon are original.

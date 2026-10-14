@@ -75,4 +75,4 @@ display, use the Display picker.
 * Values update without animation. Measured: animating each bar kept WindowServer busy.
 * On this Mac, with an animated wallpaper, widgets that never redraw cost the compositor nothing
   measurable. Each widget that updates costs a little WindowServer time on every update. A clock
-  showing seconds measured about +2.7 percentage points of WindowServer CPU. See PERFORMANCE.md.
+  showing seconds measured about +2.7 percentage points of WindowServer CPU. See [PERFORMANCE.md](PERFORMANCE.md).
