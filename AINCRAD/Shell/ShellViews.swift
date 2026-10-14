@@ -7,6 +7,8 @@ struct ShellApp: Equatable {
     var pinned: Bool
     /// A folder (Downloads and so on): clicking shows its newest files instead of launching.
     var folder = false
+    /// Drawn as a white folder outlined in the theme accent.
+    var themedIcon = false
 }
 
 /// A borderless panel above the launcher that never takes key status, so clicking the shell

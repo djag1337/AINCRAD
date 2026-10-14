@@ -117,3 +117,23 @@ final class DockStoreTests: XCTestCase {
         XCTAssertEqual(AXMenus.children(games).first?.title, "Balatro")   // ".app" dropped
     }
 }
+
+final class ThemedFolderIconTests: XCTestCase {
+    func testOutlineTakesTheAccent() throws {
+        let pink = try XCTUnwrap(ThemedFolderIcon.make(accentHex: "#EE7DB8", size: 256))
+        let orange = try XCTUnwrap(ThemedFolderIcon.make(accentHex: "#F5A623", size: 256))
+        XCTAssertFalse(pink === orange)
+        XCTAssertTrue(ThemedFolderIcon.make(accentHex: "#EE7DB8", size: 256) === pink, "cached per accent")
+        // Somewhere along the folder's edge there should be a strongly pink pixel.
+        let rep = try XCTUnwrap(NSBitmapImageRep(data: try XCTUnwrap(pink.tiffRepresentation)))
+        var found = false
+        for x in stride(from: 0, to: rep.pixelsWide, by: 2) {
+            for y in stride(from: 0, to: rep.pixelsHigh, by: 2) {
+                guard let c = rep.colorAt(x: x, y: y)?.usingColorSpace(.sRGB), c.alphaComponent > 0.8 else { continue }
+                if c.redComponent > 0.8 && c.greenComponent < 0.65 && c.blueComponent > 0.55 { found = true; break }
+            }
+            if found { break }
+        }
+        XCTAssertTrue(found, "accent outline present")
+    }
+}

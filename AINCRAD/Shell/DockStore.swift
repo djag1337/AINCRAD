@@ -9,6 +9,10 @@ final class DockStore {
         var path: String
         /// Folders: "name" (default, good for launcher folders) or "added" (newest first, like Downloads).
         var sort: String?
+        /// Folders: a white folder outlined in the theme's accent, redrawn when the theme changes.
+        var themedIcon: Bool?
+        /// The accent the Finder icon was last written with, so it's only rewritten on a change.
+        var iconAccent: String?
         var url: URL { URL(fileURLWithPath: path) }
         /// A folder (not an app bundle, which is a folder too).
         var isFolder: Bool {
@@ -54,6 +58,20 @@ final class DockStore {
         guard let i = items.firstIndex(where: { $0.path == path }) else { return }
         items[i].sort = sort
         changed("sort \(items[i].url.lastPathComponent) by \(sort)")
+    }
+
+    func setThemedIcon(_ path: String, _ on: Bool) {
+        guard let i = items.firstIndex(where: { $0.path == path }) else { return }
+        items[i].themedIcon = on
+        items[i].iconAccent = nil
+        changed("themed icon \(on ? "on" : "off") for \(items[i].url.lastPathComponent)")
+    }
+
+    /// Records the accent written to a folder's Finder icon (no change notification: it's bookkeeping).
+    func noteIconAccent(_ path: String, _ accent: String?) {
+        guard let i = items.firstIndex(where: { $0.path == path }) else { return }
+        items[i].iconAccent = accent
+        save()
     }
 
     func move(from: Int, to: Int) {

@@ -343,8 +343,18 @@ final class ShellController: NSObject {
 
     // MARK: Content
 
+    /// Keeps themed folder icons in Finder in step with the theme's accent (only rewritten on change).
+    private func syncThemedFolderIcons() {
+        let accent = theme.colors.accent
+        for item in DockStore.shared.items where item.themedIcon == true && item.isFolder && item.iconAccent != accent {
+            let ok = ThemedFolderIcon.apply(to: item.url, accentHex: accent)
+            DockStore.shared.noteIconAccent(item.path, ok ? accent : nil)
+        }
+    }
+
     private func refresh() {
         guard visible, let dv = dockView, let dock = dockPanel else { return }
+        syncThemedFolderIcons()
         // The dock lives on the main display when always on, otherwise with the launcher.
         guard let screen = (alwaysOn && !launcherOpen ? NSScreen.screens.first : bars.first?.panel.screen) ?? NSScreen.main else { return }
         let apps = shellApps()
@@ -495,8 +505,11 @@ final class ShellController: NSObject {
                      .separatorLine,
                      .action("Sort by Name", checked: sort == "name") { store.setSort(path, "name") },
                      .action("Sort by Date Added", checked: sort == "added") { store.setSort(path, "added") },
+                     .action("Theme-Coloured Icon", enabled: pinnedIndex != nil, checked: app.themedIcon) {
+                         store.setThemedIcon(path, !app.themedIcon)
+                     },
                      .separatorLine] + edits
-            edits += [nodes[3], nodes[4]]
+            edits += [nodes[3], nodes[4], nodes[5]]
             let editTitles = Set(edits.map(\.title))
             menus.show(nodes, title: app.name, anchor: rect, screen: screen, theme: theme, level: dock.level, rising: true) { [weak self] node in
                 editTitles.contains(node.title) ? self?.performEdit(node) : self?.perform(node)
@@ -617,7 +630,8 @@ final class ShellController: NSObject {
             guard FileManager.default.fileExists(atPath: item.path) else { return nil }
             let url = item.url
             return ShellApp(name: FileManager.default.displayName(atPath: item.path), url: url,
-                            bundleID: item.isFolder ? nil : Bundle(url: url)?.bundleIdentifier, pinned: true, folder: item.isFolder)
+                            bundleID: item.isFolder ? nil : Bundle(url: url)?.bundleIdentifier, pinned: true, folder: item.isFolder,
+                            themedIcon: item.isFolder && item.themedIcon == true)
         }
     }
 }

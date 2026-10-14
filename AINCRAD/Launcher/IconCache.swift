@@ -38,6 +38,8 @@ final class IconCache {
             guard let base = NSImage(systemSymbolName: String(spec.dropFirst(3)), accessibilityDescription: nil) else { return nil }
             return base.withSymbolConfiguration(NSImage.SymbolConfiguration(pointSize: size, weight: .semibold)) ?? base
         }
+        // Drawn small (dock buttons), so a bolder ring: about 2 px at 32 px.
+        if spec.hasPrefix("themedfolder:") { return ThemedFolderIcon.make(accentHex: String(spec.dropFirst(13)), size: 128, ring: 1.0 / 16) }
         let path: String
         if let colon = spec.firstIndex(of: ":"), ["app", "file", "image"].contains(String(spec[..<colon])) {
             path = String(spec[spec.index(after: colon)...])

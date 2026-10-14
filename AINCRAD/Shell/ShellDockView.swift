@@ -111,7 +111,8 @@ final class ShellDockView: ShellLayerView {
                 b.shadowPath = CGPath(ellipseIn: b.bounds, transform: nil)
                 let icon = CALayer()
                 icon.frame = b.bounds.insetBy(dx: 9, dy: 9)
-                icon.contents = IconCache.shared.image("app:" + app.url.path, size: icon.bounds.width, tint: nil, scale: window?.backingScaleFactor ?? 2)
+                let spec = app.themedIcon ? "themedfolder:" + c.accent : "app:" + app.url.path
+                icon.contents = IconCache.shared.image(spec, size: icon.bounds.width, tint: nil, scale: window?.backingScaleFactor ?? 2)
                 b.addSublayer(icon)
                 let ring = CALayer()
                 ring.frame = r.insetBy(dx: -4, dy: -4)
