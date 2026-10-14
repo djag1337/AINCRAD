@@ -91,6 +91,9 @@ struct WidgetsPane: View {
                         widgets.rebuildAll()
                     }), in: 0.1...1, step: 0.05)
                 }
+                Toggle("Fade desktop widgets while the launcher is open", isOn: Binding(
+                    get: { model.settings.dimDesktopWidgetsWithLauncher },
+                    set: { v in model.update { $0.dimDesktopWidgetsWithLauncher = v } }))
                 ForEach(widgets.layout.widgets.filter(\.hud).sorted { $0.z > $1.z }) { w in row(w) }
             }
             Section("On your desktops") {

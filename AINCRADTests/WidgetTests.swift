@@ -170,3 +170,17 @@ final class HUDWidgetTypeTests: XCTestCase {
         }
     }
 }
+
+final class HUDEditTagTests: XCTestCase {
+    func testHUDTagOnlyForHUDWidgetsWhileEditing() {
+        var w = WidgetConfig(type: "clock")
+        let view = WidgetHostView(config: w)
+        view.apply(config: w, editing: true, selected: false)
+        XCTAssertTrue(view.hudTag.isHidden, "desktop widget shows no tag")
+        w.hud = true
+        view.apply(config: w, editing: true, selected: false)
+        XCTAssertFalse(view.hudTag.isHidden, "HUD widget is tagged in edit mode")
+        view.apply(config: w, editing: false, selected: false)
+        XCTAssertTrue(view.hudTag.isHidden, "no tag outside edit mode")
+    }
+}

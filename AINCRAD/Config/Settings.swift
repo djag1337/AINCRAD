@@ -46,6 +46,8 @@ struct AppSettings: Codable, Equatable {
     var launchAtLogin = false
     /// Opacity of the whole HUD widget layer (each widget's own opacity multiplies with it).
     var hudWidgetOpacity = 1.0
+    /// Fade desktop widgets on the launcher's display while it's open, so the menu reads cleanly.
+    var dimDesktopWidgetsWithLauncher = true
     /// The starter HUD widgets were added once; never re-add them after the user removes them.
     var hudStarterAdded = false
     /// The HUD quest log was added once (for layouts made before it existed).

@@ -41,6 +41,8 @@ final class WidgetHostView: NSView {
     private let resize = CALayer()
     private let knob = CALayer()
     private let knobLine = CALayer()
+    /// "HUD" tag shown in edit mode, so HUD widgets stand out from desktop ones.
+    private(set) var hudTag = CATextLayer()
     private var content: WidgetContent?
     private var editing = false
     private var selected = false
@@ -76,7 +78,14 @@ final class WidgetHostView: NSView {
         knob.cornerRadius = 7
         knob.borderWidth = 1.5
         knob.backgroundColor = NSColor.white.cgColor
-        [outline, knobLine, resize, knob].forEach { holder.addSublayer($0) }
+        hudTag.string = "HUD"
+        hudTag.font = NSFont.systemFont(ofSize: 10, weight: .bold)
+        hudTag.fontSize = 10
+        hudTag.alignmentMode = .center
+        hudTag.foregroundColor = NSColor.white.cgColor
+        hudTag.cornerRadius = 3
+        hudTag.contentsScale = 2
+        [outline, knobLine, resize, knob, hudTag].forEach { holder.addSublayer($0) }
     }
 
     required init?(coder: NSCoder) { fatalError("not used") }
@@ -115,6 +124,10 @@ final class WidgetHostView: NSView {
             knobLine.frame = CGRect(x: w / 2 - 0.75, y: -17, width: 1.5, height: 14)
             knobLine.backgroundColor = accent.cgColor
             outline.isHidden = !editing
+            hudTag.isHidden = !(editing && config.hud)
+            hudTag.frame = CGRect(x: -3, y: -20, width: 34, height: 15)
+            hudTag.backgroundColor = accent.cgColor
+            hudTag.contentsScale = window?.backingScaleFactor ?? 2
             [resize, knob, knobLine].forEach { $0.isHidden = !(editing && selected && !config.locked) }
         }
     }

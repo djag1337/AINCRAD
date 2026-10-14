@@ -122,6 +122,9 @@ final class AppMenuPanel {
         guard !nodes.isEmpty else { return }
         let p = panel ?? ShellPanel()
         p.level = NSWindow.Level(rawValue: level.rawValue + 1)
+        // Explicit, so clicks on the panel's transparent parts land here (and dismiss the menu)
+        // instead of falling through to the launcher, which would treat them as "back" and close.
+        p.ignoresMouseEvents = false
         p.setFrame(screen.frame, display: false)
         p.contentView = view
         view.frame = NSRect(origin: .zero, size: screen.frame.size)
@@ -234,7 +237,7 @@ private final class AppMenuView: NSView {
         col.frame = CGRect(x: x, y: y, width: width, height: h)
         if from == nil {
             let w = min(header.preferredFrameSize().width + 20, width)
-            header.frame = CGRect(x: x, y: rising ? y - 26 : anchor.maxY + 8, width: w, height: 20)
+            Motion.instant { header.frame = CGRect(x: x, y: rising ? y - 26 : anchor.maxY + 8, width: w, height: 20) }
         }
         let c = theme.colors
         Motion.instant {

@@ -171,6 +171,7 @@ final class WidgetManager: NSObject, ObservableObject, WidgetHostDelegate {
         if let key {
             hudDisplay = key
             sync()
+            dimDesktop(on: key, true)
             for (id, host) in hosts where host.built.hud && host.built.display == key {
                 guard let w = layout.widgets.first(where: { $0.id == id }), let sc = screen else { continue }
                 let target = host.panel.frame
@@ -185,6 +186,7 @@ final class WidgetManager: NSObject, ObservableObject, WidgetHostDelegate {
                 }
             }
         } else {
+            if let old = hudDisplay { dimDesktop(on: old, false) }
             let closing = hosts.filter { $0.value.built.hud && !editing }
             hudDisplay = nil
             NSAnimationContext.runAnimationGroup({ ctx in
@@ -194,6 +196,19 @@ final class WidgetManager: NSObject, ObservableObject, WidgetHostDelegate {
                 guard let self, self.hudDisplay == nil else { return }
                 self.sync()
             })
+        }
+    }
+
+    /// Fades the desktop widgets of one display while its launcher is open, and back after.
+    private func dimDesktop(on display: String, _ dim: Bool) {
+        guard store.settings.dimDesktopWidgetsWithLauncher, !editing else { return }
+        let targets = hosts.values.filter { !$0.built.hud && $0.built.display == display }
+        NSAnimationContext.runAnimationGroup { ctx in
+            ctx.duration = dim ? 0.2 : 0.25
+            for host in targets {
+                let w = layout.widgets.first { $0.id == host.built.id } ?? host.built
+                host.panel.animator().alphaValue = dim ? opacity(w) * 0.2 : opacity(w)
+            }
         }
     }
 

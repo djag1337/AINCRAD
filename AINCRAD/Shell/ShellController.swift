@@ -542,6 +542,7 @@ final class ShellController: NSObject {
             panel.collectionBehavior = behavior
         }
         refresh()
+        if launcherOpen { prefetchExtras() }
         updateModes(animated: wasVisible)
         if !wasVisible {
             for panel in panels where currentlyShown(panel) {
@@ -833,20 +834,43 @@ final class ShellController: NSObject {
         }
     }
 
-    /// Right-click on the top bar: the menu bar icons (Wi-Fi, Sound, status items), read off the
-    /// main thread since it asks every running app.
+    /// The menu bar icons, read in the background when the launcher opens (asking every running
+    /// app takes a second or two), so a right-click on the bar can show them at once.
+    private var extrasCache: (time: Date, nodes: [AXMenus.Node])?
+    private var extrasLoading = false
+
+    private func prefetchExtras(then done: (([AXMenus.Node]) -> Void)? = nil) {
+        guard AXIsProcessTrusted(), !extrasLoading else { return }
+        extrasLoading = true
+        let start = CACurrentMediaTime()
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            let extras = AXMenus.extras()
+            DispatchQueue.main.async {
+                guard let self else { return }
+                self.extrasLoading = false
+                self.extrasCache = (Date(), extras)
+                Log.info(String(format: "shell: %d menu bar icons read in %.0f ms", extras.count, (CACurrentMediaTime() - start) * 1000))
+                done?(extras)
+            }
+        }
+    }
+
+    /// Right-click on the top bar: the menu bar icons (Wi-Fi, Sound, status items).
     private func showExtras(from rect: NSRect, panel: ShellPanel) {
         guard let screen = panel.screen else { return }
         if menus.isOpen { menus.hide(); return }
         guard AXIsProcessTrusted() else { return }
-        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-            let extras = AXMenus.extras()
-            DispatchQueue.main.async {
-                guard let self, self.visible else { return }
-                let nodes = extras.isEmpty ? [AXMenus.Node(title: "No menu bar icons found", enabled: false)] : extras
-                self.menus.show(nodes, title: "Menu bar", anchor: rect, screen: screen, theme: self.theme, level: panel.level,
-                                rising: false) { [weak self] node in self?.perform(node) }
-            }
+        let present: ([AXMenus.Node]) -> Void = { [weak self] extras in
+            guard let self, self.visible else { return }
+            let nodes = extras.isEmpty ? [AXMenus.Node(title: "No menu bar icons found", enabled: false)] : extras
+            self.menus.show(nodes, title: "Menu bar", anchor: rect, screen: screen, theme: self.theme, level: panel.level,
+                            rising: false) { [weak self] node in self?.perform(node) }
+        }
+        if let cache = extrasCache, Date().timeIntervalSince(cache.time) < 120 {
+            present(cache.nodes)
+            prefetchExtras()   // refresh quietly for next time
+        } else {
+            prefetchExtras(then: present)
         }
     }
 
