@@ -5,6 +5,14 @@ Notable changes to AINCRAD. Dates are when a change landed, not a formal release
 ## Unreleased (0.2)
 
 ### Added
+- **Productivity (roadmap phase 2).**
+  - **Reminders and events from plain words:** type `remind call mom tomorrow 5pm` or
+    `event lunch friday 1pm` in the launcher, or use Command Center › Quests (an SAO input box
+    that previews the date it understood).
+  - **Quest actions:** click a quest in the quest log to complete it, snooze it, or open it.
+    Completing one earns EXP.
+  - **Quick notes:** an SAO notepad from Command Center › Notes, saved as Markdown in
+    `~/AINCRAD Notes`.
 - **System menu (roadmap phase 1).** A new launcher circle with Sound, Wi-Fi, Bluetooth,
   Display, Power and Battery quick menus, using Apple's own frameworks.
   - Wi-Fi network names, Bluetooth and appearance each ask macOS permission only when first used.
@@ -47,6 +55,8 @@ Notable changes to AINCRAD. Dates are when a change landed, not a formal release
 - The top bar names the app you were actually in, not a background helper.
 
 ### Fixed
+- HUD widgets showed stale content (the quest log, the EXP bar) after the speed-up that keeps
+  their windows between opens. They now redraw whenever they appear.
 - Clicking outside an open dock or top-bar menu closed the whole launcher.
 - The menu-bar icon list took about 1 s to appear. It's now read ahead and shows instantly.
 - Right-click menus over tilted columns: the first row was half hidden and stray lines showed.

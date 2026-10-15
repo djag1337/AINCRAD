@@ -456,7 +456,10 @@ final class ExpContent: WidgetContent {
         render(leveledUp: false)
     }
 
-    override func start() { listener = ExpStore.shared.listen { [weak self] up in self?.render(leveledUp: up) } }
+    override func start() {
+        listener = ExpStore.shared.listen { [weak self] up in self?.render(leveledUp: up) }
+        render(leveledUp: false)   // EXP gained while hidden
+    }
     override func stop() { if let listener { ExpStore.shared.unlisten(listener) }; listener = nil }
 
     private func render(leveledUp: Bool) {

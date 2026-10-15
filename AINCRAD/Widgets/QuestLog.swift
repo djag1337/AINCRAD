@@ -14,9 +14,12 @@ final class QuestStore {
         var end: Date?
         var allDay = false
         var overdue = false
+        /// EventKit's calendarItemIdentifier, for completing, snoozing and opening it.
+        var id = ""
     }
 
-    private let store = EKEventStore()
+    /// Shared with QuestActions, which writes reminders and events through the same store.
+    let store = EKEventStore()
     private var observer: NSObjectProtocol?
     private var listeners: [UUID: () -> Void] = [:]
     private(set) var quests: [Quest] = []
@@ -69,7 +72,7 @@ final class QuestStore {
             let predicate = store.predicateForEvents(withStart: now.addingTimeInterval(-3600), end: endOfDay, calendars: nil)
             events = store.events(matching: predicate)
                 .filter { $0.endDate > now && $0.status != .canceled }
-                .map { Quest(title: $0.title ?? "Event", kind: .event, start: $0.startDate, end: $0.endDate, allDay: $0.isAllDay) }
+                .map { Quest(title: $0.title ?? "Event", kind: .event, start: $0.startDate, end: $0.endDate, allDay: $0.isAllDay, id: $0.calendarItemIdentifier) }
         }
         guard QuestStore.remindersAllowed else { return publish(events) }
         let predicate = store.predicateForIncompleteReminders(withDueDateStarting: nil, ending: endOfDay, calendars: nil)
@@ -77,7 +80,7 @@ final class QuestStore {
             let start = Calendar.current.startOfDay(for: now)
             let due = (reminders ?? []).map { r -> Quest in
                 let date = r.dueDateComponents.flatMap { Calendar.current.date(from: $0) }
-                return Quest(title: r.title ?? "Reminder", kind: .reminder, start: date, overdue: (date ?? now) < start)
+                return Quest(title: r.title ?? "Reminder", kind: .reminder, start: date, overdue: (date ?? now) < start, id: r.calendarItemIdentifier)
             }
             DispatchQueue.main.async { self.publish(events + due) }
         }
@@ -106,6 +109,19 @@ final class QuestContent: WidgetContent {
     private var listener: UUID?
     private var timer: Timer?
     private var dynamic: [CALayer] = []
+    /// Row rectangles (widget coordinates) and the quest each shows, for clicks.
+    private var hits: [(CGRect, QuestStore.Quest)] = []
+
+    /// Click a quest: Complete / Snooze / Open, in an SAO column at the pointer.
+    override func click(at point: CGPoint, in screenRect: CGRect) {
+        guard let quest = hits.first(where: { $0.0.contains(point) })?.1, !quest.id.isEmpty else { return }
+        let mouse = NSEvent.mouseLocation
+        guard let screen = NSScreen.screens.first(where: { NSMouseInRect(mouse, $0.frame, false) }) else { return }
+        SoundPlayer.shared.play(.select)
+        QuestActions.menu.show(QuestActions.nodes(for: quest), title: quest.title, anchor: NSRect(x: mouse.x, y: mouse.y - 20, width: 1, height: 20),
+                               screen: screen, theme: theme, level: NSWindow.Level(rawValue: NSWindow.Level.popUpMenu.rawValue + 1),
+                               rising: false) { AXMenus.press($0) }
+    }
 
     override func build() {
         let fs = config.style.fontSize
@@ -121,6 +137,8 @@ final class QuestContent: WidgetContent {
 
     override func start() {
         listener = QuestStore.shared.listen { [weak self] in self?.render() }
+        // HUD widgets keep their layers between opens, so redraw with whatever changed meanwhile.
+        render()
         // Countdowns tick by the minute.
         let t = Timer(timeInterval: 30, repeats: true) { [weak self] _ in self?.render() }
         t.tolerance = 5
@@ -139,6 +157,7 @@ final class QuestContent: WidgetContent {
         Motion.instant {
             dynamic.forEach { $0.removeFromSuperlayer() }
             dynamic = []
+            hits = []
             let fs = config.style.fontSize
             var y = 10 + lineHeight(fs * 0.8) + 14
             let showEvents = config.flag("events", true), showReminders = config.flag("reminders", true)
@@ -162,12 +181,15 @@ final class QuestContent: WidgetContent {
             // The Floor Boss: the next timed event that hasn't started.
             let boss = quests.firstIndex { $0.kind == .event && !$0.allDay && ($0.start ?? now) > now }
             if let b = boss {
+                let top = y
                 y = drawBoss(quests[b], at: y, now: now)
+                hits.append((CGRect(x: 0, y: top, width: size.width, height: y - top), quests[b]))
             }
             let rowH = lineHeight(fs * 0.85) + 8
             for (i, q) in quests.enumerated() where i != boss {
                 guard y + rowH <= size.height - 6 else { break }
                 drawRow(q, at: y, height: rowH, now: now)
+                hits.append((CGRect(x: 0, y: y, width: size.width, height: rowH), q))
                 y += rowH
             }
         }

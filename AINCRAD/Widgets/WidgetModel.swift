@@ -22,7 +22,7 @@ struct WidgetConfig: Codable, Equatable, Identifiable {
     /// Type-specific settings, kept as strings so new widget types need no schema change.
     var props: [String: String] = [:]
 
-    var isInteractive: Bool { type == "app" || type == "launcher" || type == "gameshelf" }
+    var isInteractive: Bool { type == "app" || type == "launcher" || type == "gameshelf" || type == "quests" }
 
     func prop(_ key: String, _ fallback: String) -> String { props[key].flatMap { $0.isEmpty ? nil : $0 } ?? fallback }
     func flag(_ key: String, _ fallback: Bool) -> Bool { props[key].map { $0 == "true" } ?? fallback }

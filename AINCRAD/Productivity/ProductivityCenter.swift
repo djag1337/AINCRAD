@@ -358,6 +358,8 @@ final class ProductivityCenter {
                 MenuItem(name: "Inbox", icon: "sf:tray.full.fill", provider: "productivity:captures")
             ]),
             MenuItem(name: "Workspaces", icon: "sf:rectangle.3.group.fill", provider: "productivity:workspaces"),
+            MenuItem(name: "Quests", icon: "sf:flag.checkered", provider: "quests:menu"),
+            MenuItem(name: "Notes", icon: "sf:note.text", provider: "notes:list"),
             MenuItem(name: "Window & System", icon: "sf:macwindow", provider: "productivity:system"),
             MenuItem(name: "Extensions", icon: "sf:puzzlepiece.extension.fill", provider: "ext:all")
         ])

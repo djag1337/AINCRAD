@@ -291,6 +291,8 @@ final class LauncherController: NSObject, NSWindowDelegate, MenuViewDelegate {
         case "productivity:system": return productivity.systemMenu()
         case "productivity:suggestions": return productivity.suggestions()
         case "productivity:context": return productivity.contextMenu()
+        case "quests:menu": return QuestActions.menuItems()
+        case "notes:list": return NotesPad.menuItems()
         case let p where p.hasPrefix("system:"):
             return SystemMenu.shared.children(p)
         case let p where p.hasPrefix("ext:"):
@@ -438,7 +440,7 @@ final class LauncherController: NSObject, NSWindowDelegate, MenuViewDelegate {
         }()
         let menu = (previewMenu ?? store.menu).root.filter(isVisible)
         searchEngine.files(query, completion: more)
-        return productivity.commandResults(query) + SearchEngine.instant(query, apps: apps, menu: menu)
+        return QuestActions.commandResults(query) + productivity.commandResults(query) + SearchEngine.instant(query, apps: apps, menu: menu)
     }
 
     func menuViewDidOpenColumn(_ view: MenuView) {

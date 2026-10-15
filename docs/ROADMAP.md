@@ -73,6 +73,12 @@ deep-links to the right System Settings page.
 
 ## 3. Productivity
 
+> **Built (Oct 15):** reminders and events from plain words. Type `remind …` / `event …` in the
+> launcher, or use Command Center › Quests › New Reminder… / New Event…, an SAO input box that
+> previews the date it understood. Click a quest in the quest log (or use Command Center › Quests)
+> to complete it, snooze it an hour or until tomorrow, or open it. Quick notes: Command Center ›
+> Notes opens an SAO notepad that saves Markdown to `~/AINCRAD Notes`.
+
 | Feature | Notes | |
 |---|---|---|
 | **New reminder** from the launcher (type, pick list and due time) | EventKit, same access as the quest log | 🟢 |

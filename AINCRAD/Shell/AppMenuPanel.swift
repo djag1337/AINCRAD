@@ -190,7 +190,8 @@ private final class AppMenuView: NSView {
         header.font = f
         header.fontSize = f.pointSize
         header.foregroundColor = themeColor(theme.colors.panelText).cgColor
-        header.string = title.uppercased()
+        // Long titles (a quest, a file) would overflow the tag; keep it to one short line.
+        header.string = (title.count > 30 ? String(title.prefix(29)) + "…" : title).uppercased()
         header.contentsScale = scale
         header.alignmentMode = .left
         header.backgroundColor = themeColor(theme.colors.panel).withAlphaComponent(0.95).cgColor

@@ -76,6 +76,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             ExpStore.shared.gain(10)
         }
         BattleLog.shared.start()
+        QuestActions.notify = { [weak self] text, title in self?.scriptHost.showMessage(text, from: title) }
         DockStore.shared.load()
         ExpStore.shared.start()
         launcher?.recents.start()
@@ -311,6 +312,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         case "pause": togglePause()
         case "none": break
         case let b where b.hasPrefix("system:"): SystemMenu.shared.perform(b)
+        case let b where b.hasPrefix("quests:"):
+            QuestActions.perform(b) { [weak self] title, placeholder, kind, done in
+                guard let self else { return }
+                SAOPrompt.shared.show(title: title, placeholder: placeholder, kind: kind, theme: self.store.theme, onDone: done)
+            }
+        case let b where b.hasPrefix("notes:"): NotesPad.shared.perform(b, theme: store.theme)
         case let n where n.hasPrefix("prism:"):
             // Prism Launcher starts an instance by its folder name.
             let p = Process()
