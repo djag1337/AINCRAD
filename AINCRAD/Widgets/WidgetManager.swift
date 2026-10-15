@@ -191,6 +191,21 @@ final class WidgetManager: NSObject, ObservableObject, WidgetHostDelegate {
         }
     }
 
+    /// HUD widgets that a menu column overlaps fade back, so the menu stays readable on top.
+    func avoid(_ rects: [CGRect]) {
+        guard let display = hudDisplay, !editing else { return }
+        for host in hosts.values where host.built.hud && host.built.display == display {
+            let w = layout.widgets.first { $0.id == host.built.id } ?? host.built
+            let covered = rects.contains { $0.intersects(host.panel.frame) }
+            let target = covered ? opacity(w) * 0.15 : opacity(w)
+            guard abs(host.panel.alphaValue - target) > 0.01 else { continue }
+            NSAnimationContext.runAnimationGroup { ctx in
+                ctx.duration = 0.15
+                host.panel.animator().alphaValue = target
+            }
+        }
+    }
+
     /// Fades the desktop widgets of one display while its launcher is open, and back after.
     private func dimDesktop(on display: String, _ dim: Bool) {
         guard store.settings.dimDesktopWidgetsWithLauncher, !editing else { return }

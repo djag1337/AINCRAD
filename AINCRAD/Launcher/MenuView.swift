@@ -45,6 +45,8 @@ final class MenuView: NSView {
         var rows: [Row] = []
         var focus = 0
         var selected: Int?
+        /// The item whose children this column shows, so live data can refresh it in place.
+        var parent: MenuItem?
         var x: CGFloat = 0
         /// Untransformed frame; the container's own frame changes when `tilt` is applied.
         var frame = CGRect.zero
@@ -69,6 +71,21 @@ final class MenuView: NSView {
     /// The screen minus the menu bar and Dock, in this view's coordinates (set per open).
     var safeArea: CGRect?
     private var infoFont = NSFont.systemFont(ofSize: 15)
+
+    /// Screen rects of the open columns (and context menu), whenever they change, so HUD
+    /// widgets underneath can step aside. Empty when the menu closes.
+    var onColumnsChanged: (([CGRect]) -> Void)?
+    private var lastColumnRects: [CGRect] = []
+
+    private func notifyColumns() {
+        guard let window else { return }
+        var rects = columns.map { $0.frame.offsetBy(dx: shift, dy: 0) }
+        if let c = context { rects.append(c.column.frame.offsetBy(dx: shift, dy: 0)) }
+        let screenRects = rects.map { window.convertToScreen(convert($0.insetBy(dx: -12, dy: -8), to: nil)) }
+        guard screenRects != lastColumnRects else { return }
+        lastColumnRects = screenRects
+        onColumnsChanged?(screenRects)
+    }
 
     /// Silences sounds, e.g. for the invisible warm-up presentation at launch.
     var muted = false
@@ -203,6 +220,7 @@ final class MenuView: NSView {
     }
 
     private func teardown() {
+        if !lastColumnRects.isEmpty { lastColumnRects = []; onColumnsChanged?([]) }
         Motion.instant {
             circles.forEach { $0.layer.removeFromSuperlayer() }
             columns.forEach { $0.container.removeFromSuperlayer(); $0.pointer.removeFromSuperlayer() }
@@ -335,6 +353,19 @@ final class MenuView: NSView {
     private func openColumn(for item: MenuItem, level: Int) {
         let items = (delegate?.menuView(self, childrenOf: item) ?? []).filter(isItemVisible)
         openColumn(items: items, level: level, animate: true)
+        columns.last?.parent = item
+    }
+
+    /// Rebuilds an open column whose items come from `provider` (data that arrives after the
+    /// column opened, like a Wi-Fi scan), keeping the focused row. Deeper columns close.
+    func refreshColumns(provider: String) {
+        guard !closing, let i = columns.firstIndex(where: { $0.parent?.provider == provider }), let parent = columns[i].parent else { return }
+        let level = i + 1, focus = columns[i].focus
+        let items = (delegate?.menuView(self, childrenOf: parent) ?? []).filter(isItemVisible)
+        closeColumns(from: level)
+        openColumn(items: items, level: level, animate: false, focus: min(focus, max(items.count - 1, 0)))
+        columns.last?.parent = parent
+        if active > level { active = level }
     }
 
     private func openColumn(items: [MenuItem], level: Int, animate: Bool, focus: Int = 0) {
@@ -361,6 +392,7 @@ final class MenuView: NSView {
             place(col)
             refreshStates()
         }
+        notifyColumns()
         guard animate else { return }
         for (i, r) in col.rows.enumerated() where abs(i - col.focus) <= g.visibleRows {
             motion.enter(r.layer, offset: CGPoint(x: -theme.animation.slideDistance, y: 0), delay: Double(i) * theme.animation.rowStagger,
@@ -466,6 +498,7 @@ final class MenuView: NSView {
         }
         removed.forEach { $0.container.opacity = 0; $0.pointer.opacity = 0 }
         CATransaction.commit()
+        notifyColumns()
     }
 
     // MARK: Layout & state
@@ -482,6 +515,7 @@ final class MenuView: NSView {
         shift = MenuLayout.horizontalShift(leftEdge: anchor.x - d / 2 - leftReserve, rightEdge: right,
                                            bounds: bounds, margin: g.screenMargin)
         content.frame = bounds.offsetBy(dx: shift, dy: 0)
+        notifyColumns()
     }
 
     private func place(_ col: Column) {

@@ -37,6 +37,10 @@ targets:
         NSRemindersFullAccessUsageDescription: "The Quest log widget lists reminders due today."
         NSCalendarsUsageDescription: "The Quest log widget lists today's calendar events."
         NSRemindersUsageDescription: "The Quest log widget lists reminders due today."
+        NSBluetoothAlwaysUsageDescription: "The System menu lists your Bluetooth devices so you can connect and disconnect them."
+        NSLocationUsageDescription: "macOS only shows Wi-Fi network names to apps with Location access. AINCRAD doesn't use your location."
+        NSLocationWhenInUseUsageDescription: "macOS only shows Wi-Fi network names to apps with Location access. AINCRAD doesn't use your location."
+        NSAppleEventsUsageDescription: "The System menu switches light and dark appearance and shows the restart and shut down dialogs."
         NSHumanReadableCopyright: "AINCRAD — an SAO-inspired launcher. Not affiliated with Sword Art Online rights holders."
         CFBundleURLTypes:
           - CFBundleURLName: com.djag.aincrad

@@ -50,12 +50,20 @@
 	<string>public.app-category.utilities</string>
 	<key>LSUIElement</key>
 	<true/>
+	<key>NSAppleEventsUsageDescription</key>
+	<string>The System menu switches light and dark appearance and shows the restart and shut down dialogs.</string>
+	<key>NSBluetoothAlwaysUsageDescription</key>
+	<string>The System menu lists your Bluetooth devices so you can connect and disconnect them.</string>
 	<key>NSCalendarsFullAccessUsageDescription</key>
 	<string>The Quest log widget lists today's calendar events.</string>
 	<key>NSCalendarsUsageDescription</key>
 	<string>The Quest log widget lists today's calendar events.</string>
 	<key>NSHumanReadableCopyright</key>
 	<string>AINCRAD — an SAO-inspired launcher. Not affiliated with Sword Art Online rights holders.</string>
+	<key>NSLocationUsageDescription</key>
+	<string>macOS only shows Wi-Fi network names to apps with Location access. AINCRAD doesn't use your location.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>macOS only shows Wi-Fi network names to apps with Location access. AINCRAD doesn't use your location.</string>
 	<key>NSRemindersFullAccessUsageDescription</key>
 	<string>The Quest log widget lists reminders due today.</string>
 	<key>NSRemindersUsageDescription</key>

@@ -69,6 +69,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             open ? DispatchQueue.main.async(execute: showShell) : showShell()
             if open { self?.scripts.launcherOpened() }
         }
+        launcher?.onColumnsChanged = { [weak self] rects in self?.widgets?.avoid(rects) }
         launcher?.onItemChosen = { [weak self] name in
             self?.scripts.itemChosen(name)
             BattleLog.shared.add("Used \(name)", symbol: "hand.tap.fill")
@@ -309,6 +310,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         case "openLog": NSWorkspace.shared.open(Log.fileURL)
         case "pause": togglePause()
         case "none": break
+        case let b where b.hasPrefix("system:"): SystemMenu.shared.perform(b)
         case let n where n.hasPrefix("prism:"):
             // Prism Launcher starts an instance by its folder name.
             let p = Process()

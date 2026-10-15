@@ -42,6 +42,8 @@ final class LauncherController: NSObject, NSWindowDelegate, MenuViewDelegate {
 
     /// Reports open/close so the gesture tap can stand aside while the launcher handles the mouse.
     var onOpenChanged: ((Bool) -> Void)?
+    /// Screen rects of the open menu columns (empty when closed), for HUD widgets to avoid.
+    var onColumnsChanged: (([CGRect]) -> Void)?
     /// The app that was frontmost when the launcher opened.
     private(set) var previousApp: NSRunningApplication?
     /// Reports chosen items by name (script "when menu item … is chosen" blocks).
@@ -87,7 +89,12 @@ final class LauncherController: NSObject, NSWindowDelegate, MenuViewDelegate {
         }
         let t1 = CACurrentMediaTime()
         var items = (previewMenu ?? store.menu).root
-        if previewMenu == nil { items.insert(productivity.rootMenu(), at: 0) }
+        if previewMenu == nil {
+            items.insert(productivity.rootMenu(), at: 0)
+            items.insert(SystemMenu.root(), at: 1)
+        }
+        SystemMenu.shared.onUpdate = { [weak self] provider in self?.menuView?.refreshColumns(provider: provider) }
+        view.onColumnsChanged = { [weak self] rects in self?.onColumnsChanged?(rects) }
         view.present(items: items, cursor: cursor, theme: theme, motion: motion(theme), scale: screen.backingScaleFactor)
         let t2 = CACurrentMediaTime()
         let front = NSWorkspace.shared.frontmostApplication
@@ -284,6 +291,8 @@ final class LauncherController: NSObject, NSWindowDelegate, MenuViewDelegate {
         case "productivity:system": return productivity.systemMenu()
         case "productivity:suggestions": return productivity.suggestions()
         case "productivity:context": return productivity.contextMenu()
+        case let p where p.hasPrefix("system:"):
+            return SystemMenu.shared.children(p)
         case let p where p.hasPrefix("ext:"):
             return extensionMenu?(p) ?? []
         default:

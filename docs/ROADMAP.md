@@ -31,6 +31,12 @@ be honest about where they are.
 
 ## 1. System quick menus (Control Center replacement)
 
+> **Built (Oct 15):** a **System** circle in the launcher with Sound (volume, mute, output and
+> input devices), Wi-Fi (on/off, networks, join known networks), Bluetooth (paired devices,
+> connect/disconnect), Display (light/dark), Power (keep awake, lock, sleep, log out/restart/shut
+> down through macOS's own confirmation) and Battery (when present). Brightness for external
+> displays (DDC), Night Shift, Focus and Low Power Mode aren't in it yet.
+
 A **System** circle with compact SAO panels for the things people change most.
 
 | Control | Notes | |
