@@ -58,12 +58,29 @@ struct GeneralPane: View {
                     .disabled(!model.settings.shellModeEnabled)
                 Toggle("Show app menus when the pointer reaches the top edge", isOn: bind(\.shellRevealMenus))
                     .disabled(!model.settings.shellModeEnabled || !model.settings.shellReplaceSystem)
-                Text("“Hide … completely” keeps Apple's Dock and menu bar away in every app and Space, even at the screen edge, while AINCRAD runs. App menus are then on the SAO dock: open the launcher and click the first dock button (the app you were in). The SAO top bar and dock appear only with the launcher unless “all the time” is on: they stay up the whole time AINCRAD runs, on every display, and Apple's menu bar and Dock never show — on the desktop, in apps, or in full screen. Apple's menu bar stays in place under the SAO bar so windows still stop below it; over full-screen apps the SAO bar and dock hide and slide in at the screen edge instead. The dock lists your Dock's apps in order, then other running apps.")
+                Text("“Hide … completely” keeps Apple's Dock and menu bar away in every app and Space, even at the screen edge, while AINCRAD runs. App menus are then in the SAO top bar: open the launcher and click your name (top left). The SAO top bar and dock appear only with the launcher unless “all the time” is on: they stay up the whole time AINCRAD runs, on every display, and Apple's menu bar and Dock never show — on the desktop, in apps, or in full screen. Apple's menu bar stays in place under the SAO bar so windows still stop below it; over full-screen apps the SAO bar and dock hide and slide in at the screen edge instead. The dock lists your Dock's apps in order, then other running apps.")
             } header: {
                 Text("AINCRAD Shell")
             } footer: {
                 Text("Your original menu bar and Dock settings are saved first and come back when you turn Replace off or quit AINCRAD. If AINCRAD crashes they stay replaced until you relaunch and quit it, or start it in Safe Mode (hold ⌥), which always shows Apple's.")
                     .font(.caption).foregroundStyle(.secondary)
+            }
+
+            Section {
+                Toggle("Use AINCRAD's switcher for ⌘-Tab", isOn: bind(\.cmdTabSwitcher))
+                Text("Hold ⌘ and press Tab for an SAO row of your apps, most recent first. ⇧Tab goes back, ← → move, Q quits and H hides the chosen app, Esc cancels; let go of ⌘ to switch. Uses the Accessibility access AINCRAD already has.")
+                    .font(.caption).foregroundStyle(.secondary)
+                Toggle("Open AINCRAD with ⌘-Space", isOn: bind(\.cmdSpaceLauncher))
+                HStack {
+                    Text("Spotlight owns ⌘-Space until you turn its shortcut off; AINCRAD won't change your keyboard shortcuts for you. Then type to search.")
+                        .font(.caption).foregroundStyle(.secondary)
+                    Spacer()
+                    Button("Keyboard Shortcuts…") {
+                        NSWorkspace.shared.open(URL(string: "x-apple.systempreferences:com.apple.Keyboard-Settings.extension?Shortcuts")!)
+                    }
+                }
+            } header: {
+                Text("Take over system shortcuts")
             }
 
             Section {

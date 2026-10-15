@@ -79,6 +79,10 @@ struct AppSettings: Codable, Equatable {
     var shellModeEnabled = true
     /// Hide Apple's Dock entirely (every app, every Space) while AINCRAD runs.
     var hideAppleDock = false
+    /// Opt-in: AINCRAD's SAO app switcher replaces ⌘-Tab.
+    var cmdTabSwitcher = false
+    /// Opt-in: ⌘-Space opens the launcher (Spotlight's own shortcut must be turned off).
+    var cmdSpaceLauncher = false
     /// Hide Apple's menu bar entirely (no slide-in at the top edge) while AINCRAD runs.
     var hideAppleMenuBar = false
     /// Retired ("while the launcher is open" hiding); kept so older settings files still decode.

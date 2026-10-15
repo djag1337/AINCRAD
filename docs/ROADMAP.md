@@ -129,6 +129,11 @@ deep-links to the right System Settings page.
 
 ## 6. Apps
 
+> **Built (Oct 15), opt-in:** Settings › General › Take over system shortcuts.
+> - **⌘-Tab** shows an SAO app switcher: most recent first, ⇧Tab back, ← → to move, Q quits,
+>   H hides, Esc cancels.
+> - **⌘-Space** opens the launcher; Spotlight's own shortcut has to be off.
+
 - **App switcher** replacement for ⌘-Tab. 🟡 Needs Accessibility, and a global key-event tap
   to take over ⌘-Tab.
 - **Quit / force quit** manager with memory and CPU per app. 🟢 Party-panel idea.

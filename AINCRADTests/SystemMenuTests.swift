@@ -86,3 +86,15 @@ final class FilesMediaTests: XCTestCase {
         XCTAssertFalse(MediaMenu.shared.children().isEmpty)
     }
 }
+
+final class AppSwitcherTests: XCTestCase {
+    func testMostRecentFirstThenByName() {
+        let running = NSWorkspace.shared.runningApplications.filter { $0.activationPolicy == .regular }
+        guard running.count >= 2 else { return }
+        let last = running.last!.processIdentifier
+        let ordered = AppSwitcher.order(running, mru: [last])
+        XCTAssertEqual(ordered.first?.processIdentifier, last, "most recently used comes first")
+        let rest = ordered.dropFirst().map { $0.localizedName ?? "" }
+        XCTAssertEqual(rest, rest.sorted(), "unknown apps fall back to name order")
+    }
+}

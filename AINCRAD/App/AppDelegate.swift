@@ -174,6 +174,26 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     // MARK: Activation
 
     /// Applies everything settings and the menu control: hotkeys, item shortcuts, gesture, safety flags.
+    private var spaceHotKey: HotKey?
+    /// Set when ⌘-Space is on but Spotlight still owns it (shown in Settings).
+    private(set) var spaceHotKeyProblem: String?
+
+    /// The opt-in ⌘-Tab switcher and ⌘-Space launcher shortcut.
+    private func applyTakeovers() {
+        let s = store.settings
+        AppSwitcher.shared.theme = store.theme
+        if s.cmdTabSwitcher && !safeMode && !s.activationPaused { AppSwitcher.shared.start() } else { AppSwitcher.shared.stop() }
+        spaceHotKey = nil
+        spaceHotKeyProblem = nil
+        if s.cmdSpaceLauncher && !safeMode && !s.activationPaused && !hotKeysSuspended {
+            spaceHotKey = HotKey(HotKeySpec(key: "space", modifiers: ["command"])) { [weak self] in self?.launcher?.toggle() }
+            if spaceHotKey == nil {
+                spaceHotKeyProblem = "⌘Space is still Spotlight's. Turn off “Show Spotlight search” in System Settings › Keyboard › Keyboard Shortcuts › Spotlight."
+                Log.error(spaceHotKeyProblem!)
+            }
+        }
+    }
+
     /// The SAO bar and dock, and (when they replace Apple's) the system-wide menu bar/Dock hiding.
     /// SystemChrome only touches the system when something actually changes, so this is cheap to repeat.
     private func applyShell() {
@@ -209,6 +229,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         }
         applyGesture()
         applyNotifications()
+        applyTakeovers()
         let symbol = store.settings.activationPaused ? "pause.circle" : "circle.circle"
         statusItem?.button?.image = NSImage(systemSymbolName: symbol, accessibilityDescription: "AINCRAD")
         statusItem?.button?.image?.isTemplate = true

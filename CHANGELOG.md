@@ -5,6 +5,10 @@ Notable changes to AINCRAD. Dates are when a change landed, not a formal release
 ## Unreleased (0.2)
 
 ### Added
+- **Opt-in system shortcuts (roadmap phase 6).**
+  - ⌘-Tab opens an SAO app switcher, using an event tap like other app switchers do.
+  - ⌘-Space opens the launcher.
+  - Both are off until you turn them on in Settings › General.
 - **Files and media (roadmap phase 5).** A new Files circle:
   - Recent Files, Downloads, Drives (with Eject) and Trash.
   - Now Playing for Music and Spotify.
