@@ -293,7 +293,7 @@ final class LauncherController: NSObject, NSWindowDelegate, MenuViewDelegate {
         case "productivity:context": return productivity.contextMenu()
         case "quests:menu": return QuestActions.menuItems()
         case "notes:list": return NotesPad.menuItems()
-        case let p where p.hasPrefix("system:"):
+        case let p where p.hasPrefix("system:") || p.hasPrefix("macsettings:") || p == "profiles:list":
             return SystemMenu.shared.children(p)
         case let p where p.hasPrefix("ext:"):
             return extensionMenu?(p) ?? []

@@ -77,6 +77,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         }
         BattleLog.shared.start()
         QuestActions.notify = { [weak self] text, title in self?.scriptHost.showMessage(text, from: title) }
+        SystemMenu.shared.appSettings = { [weak self] in self?.store.settings ?? AppSettings() }
         DockStore.shared.load()
         ExpStore.shared.start()
         launcher?.recents.start()
@@ -260,6 +261,35 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         if !notes.start() { notesProblem = "Notification bubbles need Accessibility permission" }
     }
 
+    /// "profiles:save" / "profiles:apply:<name>" / "profiles:update:<name>" / "profiles:delete:<name>".
+    private func runProfile(_ builtin: String) {
+        let parts = builtin.split(separator: ":", maxSplits: 2).map(String.init)
+        guard parts.count >= 2 else { return }
+        let name = parts.count > 2 ? (parts[2].removingPercentEncoding ?? parts[2]) : ""
+        switch parts[1] {
+        case "save":
+            SAOPrompt.shared.show(title: "Save Profile", placeholder: "Gaming", kind: "name", theme: store.theme) { [weak self] name in
+                guard let self else { return }
+                Profiles.saveCurrent(named: name, app: self.store.settings)
+                self.scriptHost.showMessage("Profile saved: \(name)", from: "Settings")
+            }
+        case "apply":
+            guard let p = Profiles.load().first(where: { $0.name == name }) else { return }
+            Profiles.apply(p, app: store.settings,
+                           theme: { [weak self] id in _ = self?.scriptHost.switchTheme(id) },
+                           widgets: { [weak self] on in self?.scriptHost.setWidgetsVisible(on) })
+            scriptHost.showMessage("Profile: \(name)", from: "Settings")
+            BattleLog.shared.add("Switched to \(name)", symbol: "person.crop.rectangle.stack.fill")
+        case "update":
+            Profiles.saveCurrent(named: name, app: store.settings)
+            scriptHost.showMessage("Profile updated: \(name)", from: "Settings")
+        case "delete":
+            Profiles.delete(name)
+            scriptHost.showMessage("Profile deleted: \(name)", from: "Settings")
+        default: break
+        }
+    }
+
     private func showBubble(_ note: NotificationMirror.Note) {
         let s = store.settings.reducedMotion
         let reduced = s == "on" || (s == "system" && NSWorkspace.shared.accessibilityDisplayShouldReduceMotion)
@@ -318,6 +348,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
                 SAOPrompt.shared.show(title: title, placeholder: placeholder, kind: kind, theme: self.store.theme, onDone: done)
             }
         case let b where b.hasPrefix("notes:"): NotesPad.shared.perform(b, theme: store.theme)
+        case let b where b.hasPrefix("macset:"):
+            if let done = MacSettings.perform(b) { scriptHost.showMessage(done, from: "Settings") }
+        case let b where b.hasPrefix("profiles:"): runProfile(b)
         case let n where n.hasPrefix("prism:"):
             // Prism Launcher starts an instance by its folder name.
             let p = Process()

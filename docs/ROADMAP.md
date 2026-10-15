@@ -58,6 +58,12 @@ A **System** circle with compact SAO panels for the things people change most.
 
 ## 2. Settings, the AINCRAD way
 
+> **Built (Oct 15):** System › Mac Settings changes 33 settings in place (Dock & Menu Bar,
+> Finder & Desktop, Mission Control, Hot Corners, Keyboard & Trackpad, Screenshots, plus accent
+> colour and scroll bars under Display), using the same preference keys System Settings writes.
+> System › Profiles saves and switches named setups. System › All Settings Pages links to 39
+> System Settings pages for the rest.
+
 A searchable **Settings** menu where common options are changed in place, and everything else
 deep-links to the right System Settings page.
 

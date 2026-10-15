@@ -65,7 +65,7 @@ final class SAOPrompt: NSObject, NSTextFieldDelegate {
         preview.frame = NSRect(x: 24, y: 18, width: width - 48, height: 22)
         preview.font = ThemeFonts.body(theme, 15)
         preview.textColor = themeColor(c.accent)
-        preview.stringValue = "Return to add · Esc to cancel"
+        preview.stringValue = kind == "name" ? "Return to save · Esc to cancel" : "Return to add · Esc to cancel"
         root.addSubview(preview)
 
         p.contentView = root

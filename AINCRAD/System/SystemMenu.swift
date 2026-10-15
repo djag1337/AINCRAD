@@ -8,6 +8,8 @@ final class SystemMenu {
     static let shared = SystemMenu()
     /// A provider's data arrived; the launcher refreshes that column if it's open.
     var onUpdate: ((String) -> Void)?
+    /// AINCRAD's own settings, so Mac settings AINCRAD manages show as locked.
+    var appSettings: () -> AppSettings = { AppSettings() }
 
     private var networks: (time: Date, list: [SystemControls.Network])?
     private var scanning = false
@@ -22,6 +24,13 @@ final class SystemMenu {
             MenuItem(id: "system:display", name: "Display", icon: "sf:display", provider: "system:display"),
             MenuItem(id: "system:power", name: "Power", icon: "sf:power", provider: "system:power"),
         ]
+        kids += [MenuItem(id: "macsettings:all", name: "Mac Settings", icon: "sf:gearshape.fill",
+                          children: MacSettings.sections.map { MenuItem(id: "macsettings:" + $0.id, name: $0.title, icon: $0.icon, provider: "macsettings:" + $0.id) },
+                          description: "Dock, Finder, Mission Control, hot corners, keyboard and trackpad, screenshots — changed right here.")]
+        kids += [MenuItem(id: "profiles:list", name: "Profiles", icon: "sf:person.crop.rectangle.stack.fill", provider: "profiles:list",
+                          description: "Save your setup as Gaming, Work, Presenting… and switch with one click."),
+                 MenuItem(id: "macsettings:pages", name: "All Settings Pages", icon: "sf:gearshape.2.fill", provider: "macsettings:pages",
+                          description: "Every System Settings page, for anything AINCRAD can't change directly.")]
         if DataHub.shared.sample(.battery)?.fraction != nil {
             kids.append(MenuItem(id: "system:battery", name: "Battery", icon: "sf:battery.75percent", provider: "system:battery"))
         }
@@ -51,6 +60,10 @@ final class SystemMenu {
         case "system:display": return display()
         case "system:power": return power()
         case "system:battery": return battery()
+        case "profiles:list": return Profiles.menuItems()
+        case "macsettings:pages": return MacSettings.pageItems()
+        case let p where p.hasPrefix("macsettings:choice:"): return MacSettings.choiceItems(String(p.dropFirst("macsettings:choice:".count)))
+        case let p where p.hasPrefix("macsettings:"): return MacSettings.items(section: String(p.dropFirst("macsettings:".count)), settings: appSettings())
         default: return []
         }
     }
@@ -175,6 +188,7 @@ final class SystemMenu {
     private func display() -> [MenuItem] {
         [SystemControls.isDark ? item("Switch to Light Appearance", "sf:sun.max.fill", "dark:0")
                                : item("Switch to Dark Appearance", "sf:moon.fill", "dark:1"),
+         ] + MacSettings.items(section: "appearance", settings: appSettings()) + [
          settings("Displays Settings…", "com.apple.Displays-Settings.extension"),
          settings("Wallpaper Settings…", "com.apple.Wallpaper-Settings.extension")]
     }

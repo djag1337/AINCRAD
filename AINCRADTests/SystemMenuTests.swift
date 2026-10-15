@@ -14,6 +14,8 @@ final class SystemMenuTests: XCTestCase {
     func testSectionsBuild() {
         let root = SystemMenu.root()
         XCTAssertEqual(root.children?.prefix(5).map(\.name), ["Sound", "Wi-Fi", "Bluetooth", "Display", "Power"])
+        XCTAssertLessThanOrEqual(root.children?.count ?? 0, 9, "short enough that every row is clickable")
+        XCTAssertEqual(root.children?.first { $0.name == "Mac Settings" }?.children?.count, MacSettings.sections.count)
         let menu = SystemMenu.shared
         for provider in ["system:sound", "system:outputs", "system:inputs", "system:wifi", "system:display", "system:power"] {
             XCTAssertFalse(menu.children(provider).isEmpty, provider)

@@ -5,6 +5,11 @@ Notable changes to AINCRAD. Dates are when a change landed, not a formal release
 ## Unreleased (0.2)
 
 ### Added
+- **Mac settings in the launcher (roadmap phase 3).**
+  - System › Mac Settings changes 33 macOS settings in place: Dock, Finder, Mission Control,
+    hot corners, keyboard and trackpad, screenshots, accent colour. Ones AINCRAD manages show a lock.
+  - System › Profiles saves your setup under a name and switches it in one click.
+  - System › All Settings Pages links to 39 System Settings pages.
 - **Productivity (roadmap phase 2).**
   - **Reminders and events from plain words:** type `remind call mom tomorrow 5pm` or
     `event lunch friday 1pm` in the launcher, or use Command Center › Quests (an SAO input box
