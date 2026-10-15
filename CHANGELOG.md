@@ -5,6 +5,10 @@ Notable changes to AINCRAD. Dates are when a change landed, not a formal release
 ## Unreleased (0.2)
 
 ### Added
+- **Files and media (roadmap phase 5).** A new Files circle:
+  - Recent Files, Downloads, Drives (with Eject) and Trash.
+  - Now Playing for Music and Spotify.
+  - Found files get Quick Look, Compress and Move to Trash on right-click.
 - **Windows (roadmap phase 4).** Command Center › Windows has three parts:
   - **Switch To:** any window in any app.
   - **Arrange Window:** 18 layouts for the window you were using; also typed as `window left`

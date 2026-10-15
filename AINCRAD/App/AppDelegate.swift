@@ -352,6 +352,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         case let b where b.hasPrefix("macset:"):
             if let done = MacSettings.perform(b) { scriptHost.showMessage(done, from: "Settings") }
         case let b where b.hasPrefix("profiles:"): runProfile(b)
+        case let b where b.hasPrefix("files:"):
+            if let message = FilesMenu.shared.perform(b, theme: store.theme) { scriptHost.showMessage(message, from: "Files") }
+        case let b where b.hasPrefix("media:"):
+            let parts = b.split(separator: ":").map(String.init)
+            if parts.count == 3 { MediaControl.command(parts[1], app: parts[2]) }
         case let b where b.hasPrefix("windows:"):
             // The launcher has just closed; give the previous app a moment to be frontmost again.
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) { [weak self] in

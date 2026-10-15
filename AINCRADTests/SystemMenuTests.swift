@@ -63,3 +63,26 @@ final class WindowControlTests: XCTestCase {
         XCTAssertTrue(WindowMenu.commandResults("safari").isEmpty)
     }
 }
+
+/// Read-only: lists and menus only; no file is opened, moved or ejected.
+final class FilesMediaTests: XCTestCase {
+    func testSpotlightListsAreRealFilesNewestFirst() {
+        let recent = FilesMenu.recent()
+        XCTAssertLessThanOrEqual(recent.count, 25)
+        XCTAssertTrue(recent.allSatisfy { !$0.path.contains("/Library/") && $0.pathExtension != "app" })
+        let downloads = FilesMenu.downloads()
+        let folder = NSHomeDirectory() + "/Downloads"
+        XCTAssertTrue(downloads.allSatisfy { $0.deletingLastPathComponent().path == folder }, "only Downloads' own items")
+    }
+
+    func testDrivesListTheStartupDisk() {
+        let drives = FilesMenu.shared.children("files:drives")
+        XCTAssertTrue(drives.contains { $0.id == "drive:/" })
+        XCTAssertFalse(drives.first { $0.id == "drive:/" }?.children?.contains { $0.name == "Eject" } ?? true, "the startup disk can't be ejected")
+    }
+
+    func testRootsStayShort() {
+        XCTAssertLessThanOrEqual(FilesMenu.root().children?.count ?? 0, 9)
+        XCTAssertFalse(MediaMenu.shared.children().isEmpty)
+    }
+}

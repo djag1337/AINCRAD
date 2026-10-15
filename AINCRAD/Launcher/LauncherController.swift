@@ -92,9 +92,12 @@ final class LauncherController: NSObject, NSWindowDelegate, MenuViewDelegate {
         if previewMenu == nil {
             items.insert(productivity.rootMenu(), at: 0)
             items.insert(SystemMenu.root(), at: 1)
+            items.insert(FilesMenu.root(), at: 2)
         }
         SystemMenu.shared.onUpdate = { [weak self] provider in self?.menuView?.refreshColumns(provider: provider) }
         WindowMenu.shared.onUpdate = { [weak self] provider in self?.menuView?.refreshColumns(provider: provider) }
+        FilesMenu.shared.onUpdate = { [weak self] provider in self?.menuView?.refreshColumns(provider: provider) }
+        MediaMenu.shared.onUpdate = { [weak self] provider in self?.menuView?.refreshColumns(provider: provider) }
         view.onColumnsChanged = { [weak self] rects in self?.onColumnsChanged?(rects) }
         view.present(items: items, cursor: cursor, theme: theme, motion: motion(theme), scale: screen.backingScaleFactor)
         let t2 = CACurrentMediaTime()
@@ -294,6 +297,8 @@ final class LauncherController: NSObject, NSWindowDelegate, MenuViewDelegate {
         case "productivity:context": return productivity.contextMenu()
         case "quests:menu": return QuestActions.menuItems()
         case let p where p.hasPrefix("windows:"): return WindowMenu.shared.children(p)
+        case let p where p.hasPrefix("files:"): return FilesMenu.shared.children(p)
+        case "media:now": return MediaMenu.shared.children()
         case "notes:list": return NotesPad.menuItems()
         case let p where p.hasPrefix("system:") || p.hasPrefix("macsettings:") || p == "profiles:list":
             return SystemMenu.shared.children(p)
@@ -342,7 +347,13 @@ final class LauncherController: NSObject, NSWindowDelegate, MenuViewDelegate {
             if let app = runningApp(item) { out.append(A(id: "quit", title: "Quit \(app.localizedName ?? item.name)", symbol: "xmark.circle.fill")) }
         case .open:
             out.append(A(id: "finder", title: "Show in Finder", symbol: "folder.fill"))
+            out.append(A(id: "quicklook", title: "Quick Look", symbol: "eye.fill"))
             out.append(A(id: "copy", title: "Copy Path", symbol: "doc.on.doc.fill"))
+            out.append(A(id: "compress", title: "Compress", symbol: "archivebox.fill"))
+            // Only for found files (search, Files lists), never a target you put in your menu.
+            if MenuTree.find(item.id, in: store.menu.root) == nil {
+                out.append(A(id: "trash", title: "Move to Trash", symbol: "trash.fill"))
+            }
         case .url:
             out.append(A(id: "copy", title: "Copy Link", symbol: "link"))
         default: break
@@ -371,7 +382,14 @@ final class LauncherController: NSObject, NSWindowDelegate, MenuViewDelegate {
             default: return nil
             }
         }
+        func fileBuiltin(_ verb: String) {
+            guard let u = url() else { return }
+            builtin("files:\(verb):" + (u.path.addingPercentEncoding(withAllowedCharacters: .alphanumerics) ?? u.path))
+        }
         switch action {
+        case "quicklook": close("quick look"); fileBuiltin("quicklook")
+        case "compress": close("compress"); fileBuiltin("compress")
+        case "trash": close("trash"); fileBuiltin("trash-item")
         case "dock":
             if let u = url() { DockStore.shared.add(u) }
         case "undock":

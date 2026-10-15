@@ -99,6 +99,10 @@ deep-links to the right System Settings page.
 
 ## 4. Files
 
+> **Built (Oct 15):** a Files circle with Recent Files, Downloads (both from Spotlight, no
+> folder-access prompts), Drives (free space, Eject) and Trash (open, empty with a confirmation).
+> Right-click a found file for Quick Look, Compress and Move to Trash.
+
 - **Recent files**, **Downloads** and **Desktop** as live submenus. 🟢 (Spotlight queries)
 - **File actions** from the right-click menu: compress, move to a folder, rename, Quick Look. 🟢
 - **Search** across files: built (Spotlight); add filters (kind, date, folder). 🟢
@@ -140,6 +144,9 @@ deep-links to the right System Settings page.
 - **Do Not Disturb toggle**: see Focus above. 🟡
 
 ## 8. Media
+
+> **Built (Oct 15):** Files › Now Playing for Music and Spotify: the current track, Play/Pause,
+> Next and Previous. It only talks to a player that's already running, and asks macOS once per app.
 
 - **Now playing** with controls for Music and Spotify. 🟡 AppleScript per app. A universal
   now-playing view needs the private MediaRemote framework, which recent macOS restricts. 🔴
