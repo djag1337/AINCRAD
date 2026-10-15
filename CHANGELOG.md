@@ -5,6 +5,16 @@ Notable changes to AINCRAD. Dates are when a change landed, not a formal release
 ## Unreleased (0.2)
 
 ### Added
+- **System menu (roadmap phase 1).** A new launcher circle with Sound, Wi-Fi, Bluetooth,
+  Display, Power and Battery quick menus, using Apple's own frameworks.
+  - Wi-Fi network names, Bluetooth and appearance each ask macOS permission only when first used.
+  - Restart, shut down and log out go through macOS's own confirmation.
+- **Editable SAO dock.**
+  - Its own list, edited in the dock itself: right-click to keep, remove or move; drag to
+    reorder or off to remove; drop from Finder; Add to Dock from the launcher.
+  - Folders open as SAO stacks with subfolder submenus and icons.
+  - Theme-coloured folder icons.
+- HUD widgets fade back while a menu column is over them.
 - **HUD widgets.** Any widget can live in the HUD, which slides in when the launcher opens.
   There's a HUD-wide opacity slider on top of each widget's own opacity, and a starter layout:
   clock, CPU/memory/disk, network and a quest log.
