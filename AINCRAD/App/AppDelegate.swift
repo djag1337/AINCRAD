@@ -277,9 +277,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private func applyNotifications() {
         notesProblem = nil
         bubbles.seconds = store.settings.notificationSeconds
-        notes.hideOriginals = store.settings.notificationsHideOriginal
         guard store.settings.notificationBubbles, !safeMode else { return notes.stop() }
-        notes.onNote = { [weak self] note in self?.showBubble(note) }
+        notes.onNote = { [weak self] note, frame in
+            guard let self else { return }
+            self.showBubble(note, cover: self.store.settings.notificationsHideOriginal ? frame : nil)
+        }
         if !notes.start() { notesProblem = "Notification bubbles need Accessibility permission" }
     }
 
@@ -312,10 +314,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         }
     }
 
-    private func showBubble(_ note: NotificationMirror.Note) {
+    private func showBubble(_ note: NotificationMirror.Note, cover: CGRect? = nil) {
         let s = store.settings.reducedMotion
         let reduced = s == "on" || (s == "system" && NSWorkspace.shared.accessibilityDisplayShouldReduceMotion)
-        bubbles.show(note, theme: store.theme, reducedMotion: reduced)
+        bubbles.show(note, theme: store.theme, reducedMotion: reduced, cover: cover)
         BattleLog.shared.add("\(note.app): \(note.title)", symbol: "bell.fill")
         SoundPlayer.shared.enabled = store.settings.soundsEnabled
         SoundPlayer.shared.play(.open)

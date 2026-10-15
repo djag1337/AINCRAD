@@ -73,6 +73,11 @@ Notable changes to AINCRAD. Dates are when a change landed, not a formal release
 - The top bar names the app you were actually in, not a background helper.
 
 ### Fixed
+- **Notification bubbles cleared your notifications everywhere.** "Hide the original" pressed the
+  macOS banner's Close button, which dismisses the notification itself: it left Notification Center
+  and, for synced apps, your iPhone. AINCRAD now never closes or clears a notification.
+  - The option is now **Cover the macOS banner**: the bubble is drawn over the banner instead.
+  - It's off by default.
 - Tiling from the launcher arranged nothing: it targeted AINCRAD itself (frontmost while the
   launcher is open) and always the main display. It now arranges the window you came from, on
   its own display.

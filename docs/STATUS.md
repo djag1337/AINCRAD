@@ -67,6 +67,7 @@ An honest list of what works, what's built but not fully tested, and what's miss
 - ✅ Applications sorted into categories; tilt fixed for long lists
 - ✅ Game shelf: Steam (every library), Heroic (GOG/Epic), Prism Launcher instances and game apps, as a Games menu and a cover-art widget (screenshots)
 - ✅ Magic Mouse two-finger swipe (fired live, direction confirmed); hold right button and slide (unit-tested)
+- 🟡 Cover mode (bubble drawn over the macOS banner, never closing it): built, not yet seen with a real banner
 - 🟡 Notification bubbles: bubble UI tested; mirroring real banners needs Accessibility and a real notification (not yet seen live)
 - ✅ Publish to catalog from the Studio and the theme editor (flow tested against a local git remote; not pushed for real)
 - ✅ 16 preinstalled extensions (off until enabled; validated by a unit test), also in the catalog; enabled extensions' menus appear under Command Center › Extensions

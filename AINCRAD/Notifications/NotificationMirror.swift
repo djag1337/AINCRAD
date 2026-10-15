@@ -12,8 +12,8 @@ final class NotificationMirror {
         var body: String
     }
 
-    var onNote: ((Note) -> Void)?
-    var hideOriginals = true
+    /// A banner was read: its text, and where it is on screen (Cocoa coordinates) for cover mode.
+    var onNote: ((Note, CGRect?) -> Void)?
     private(set) var isRunning = false
 
     private var observer: AXObserver?
@@ -91,8 +91,9 @@ final class NotificationMirror {
             recent.removeAll { Date().timeIntervalSince($0.time) > 4 }
             guard !recent.contains(where: { $0.note == note }) else { continue }
             recent.append((note, Date()))
-            onNote?(note)
-            if hideOriginals { close(banner) }
+            // Never press the banner's Close: that dismisses the notification itself, which removes it
+            // from Notification Center and, for synced apps, from your other devices too.
+            onNote?(note, frame(of: banner))
         }
     }
 
@@ -130,11 +131,14 @@ final class NotificationMirror {
         return Note(app: parts[0], title: parts[1], body: parts.dropFirst(2).joined(separator: ", "))
     }
 
-    private func close(_ banner: AXUIElement) {
-        var names: CFArray?
-        AXUIElementCopyActionNames(banner, &names)
-        guard let action = (names as? [String])?.first(where: { $0.localizedCaseInsensitiveContains("close") }) else { return }
-        AXUIElementPerformAction(banner, action as CFString)
+    private func frame(of banner: AXUIElement) -> CGRect? {
+        guard let p = attr(banner, kAXPositionAttribute), let s = attr(banner, kAXSizeAttribute) else { return nil }
+        var pos = CGPoint.zero, size = CGSize.zero
+        AXValueGetValue(p as! AXValue, .cgPoint, &pos)
+        AXValueGetValue(s as! AXValue, .cgSize, &size)
+        guard size.width > 0, size.height > 0 else { return nil }
+        let top = NSScreen.screens.first?.frame.maxY ?? 0
+        return CGRect(x: pos.x, y: top - pos.y - size.height, width: size.width, height: size.height)
     }
 
     private func attr(_ e: AXUIElement, _ name: String) -> AnyObject? {

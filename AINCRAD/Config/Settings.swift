@@ -67,7 +67,9 @@ struct AppSettings: Codable, Equatable {
     /// Mirror macOS notifications as SAO bubbles (needs Accessibility).
     var notificationBubbles = false
     /// Close the grey macOS banner once the SAO bubble shows it.
-    var notificationsHideOriginal = true
+    /// Draw the SAO bubble over the macOS banner. It never closes the banner: closing dismisses the
+    /// notification everywhere (Notification Center and synced devices).
+    var notificationsHideOriginal = false
     var notificationSeconds = 6.0
     /// Your catalog repository (a clone of the GitHub repo) for the Publish buttons.
     var catalogRepoPath = "~/Documents/AINCRAD-catalog"

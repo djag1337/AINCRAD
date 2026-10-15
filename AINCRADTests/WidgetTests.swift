@@ -184,3 +184,13 @@ final class HUDEditTagTests: XCTestCase {
         XCTAssertTrue(view.hudTag.isHidden, "no tag outside edit mode")
     }
 }
+
+final class NotificationSafetyTests: XCTestCase {
+    /// Closing a banner dismisses the notification everywhere (Notification Center, iPhone), so
+    /// covering it is opt-in and the mirror has no way to close one.
+    func testCoverIsOffByDefaultAndMirrorNeverCloses() throws {
+        XCTAssertFalse(AppSettings().notificationsHideOriginal)
+        let source = try String(contentsOfFile: #filePath.replacingOccurrences(of: "AINCRADTests/WidgetTests.swift", with: "AINCRAD/Notifications/NotificationMirror.swift"), encoding: .utf8)
+        XCTAssertFalse(source.contains("AXUIElementPerformAction"), "the mirror must never press a banner's buttons")
+    }
+}

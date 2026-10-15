@@ -15,16 +15,21 @@ final class NotificationBubbles {
     var maxVisible = 4
     var seconds: Double = 6
 
-    func show(_ note: NotificationMirror.Note, theme: Theme, reducedMotion: Bool) {
+    /// With `cover` (the macOS banner's frame), the bubble is drawn over the banner so only the SAO
+    /// one shows; the real notification is left alone and files into Notification Center as usual.
+    func show(_ note: NotificationMirror.Note, theme: Theme, reducedMotion: Bool, cover: CGRect? = nil) {
         let mouse = NSEvent.mouseLocation
-        guard let screen = NSScreen.screens.first(where: { NSMouseInRect(mouse, $0.frame, false) }) ?? NSScreen.main else { return }
+        let coverScreen = cover.flatMap { c in NSScreen.screens.first { $0.frame.intersects(c) } }
+        guard let screen = coverScreen ?? NSScreen.screens.first(where: { NSMouseInRect(mouse, $0.frame, false) }) ?? NSScreen.main else { return }
+        let width = cover.map { max(self.width, $0.width + 8) } ?? self.width
         let c = theme.colors
         let titleFont = ThemeFonts.display(theme, 15), bodyFont = ThemeFonts.body(theme, 15)
         let textW = width - 84
         // Measured height + slack: a text layer won't draw a line that doesn't fully fit.
         let bodyH = note.body.isEmpty ? 0 : min(66, ceil((note.body as NSString).boundingRect(
             with: NSSize(width: textW - 6, height: 200), options: [.usesLineFragmentOrigin], attributes: [.font: bodyFont]).height) + 8)
-        let height = max(64, 22 + 22 + bodyH + (note.app.isEmpty ? 0 : 16) + 6)
+        var height = max(64, 22 + 22 + bodyH + (note.app.isEmpty ? 0 : 16) + 6)
+        if let cover { height = max(height, cover.height + 8) }
         let margin: CGFloat = 14
 
         let panel = NSPanel(contentRect: NSRect(x: 0, y: 0, width: width + margin * 2, height: height + margin * 2),
@@ -107,8 +112,13 @@ final class NotificationBubbles {
         if bubbles.count > maxVisible { bubbles.suffix(from: maxVisible).forEach { dismiss($0, reducedMotion: true) } }
         let vf = screen.visibleFrame
         panel.setFrameOrigin(NSPoint(x: vf.maxX - panel.frame.width - 6, y: vf.maxY - panel.frame.height - 6))
-        panel.orderFrontRegardless()
         restack(screen: screen, except: bubble)
+        if let cover {
+            // Over the banner itself, above Notification Center's windows.
+            panel.level = .screenSaver
+            panel.setFrameOrigin(NSPoint(x: cover.midX - width / 2 - margin, y: cover.midY - height / 2 - margin))
+        }
+        panel.orderFrontRegardless()
 
         if !reducedMotion {
             let slide = CASpringAnimation(keyPath: "position.x")

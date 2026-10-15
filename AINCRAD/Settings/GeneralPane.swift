@@ -145,7 +145,9 @@ struct GeneralPane: View {
                         model.update { $0.notificationBubbles = on }
                         if on && !hasAccess { model.actions.requestAccessibility() }
                     }))
-                Toggle("Close the macOS banner once the bubble shows it", isOn: bind(\.notificationsHideOriginal))
+                Toggle("Cover the macOS banner with the bubble", isOn: bind(\.notificationsHideOriginal))
+                Text("AINCRAD never closes or clears notifications. They stay in Notification Center and on your iPhone and other devices.")
+                    .font(.caption).foregroundStyle(.secondary)
                 SliderRow(title: "Bubble time (s)", value: bind(\.notificationSeconds), range: 3...15)
                 HStack {
                     if model.settings.notificationBubbles && !hasAccess {
