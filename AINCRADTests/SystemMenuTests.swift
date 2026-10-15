@@ -32,3 +32,34 @@ final class SystemMenuTests: XCTestCase {
         XCTAssertTrue(names.contains("Restart…") && names.contains("Shut Down…") && names.contains("Log Out…"))
     }
 }
+
+final class WindowControlTests: XCTestCase {
+    let screen = CGRect(x: 0, y: 0, width: 1920, height: 1050)
+
+    func testHalvesThirdsQuarters() {
+        let cur = CGRect(x: 100, y: 100, width: 800, height: 600)
+        XCTAssertEqual(WindowControl.frame(for: "left", in: screen, current: cur), CGRect(x: 0, y: 0, width: 960, height: 1050))
+        XCTAssertEqual(WindowControl.frame(for: "right", in: screen, current: cur)?.minX, 960)
+        XCTAssertEqual(WindowControl.frame(for: "top", in: screen, current: cur)?.minY, 525, "Cocoa: top half sits higher")
+        XCTAssertEqual(WindowControl.frame(for: "third-center", in: screen, current: cur), CGRect(x: 640, y: 0, width: 640, height: 1050))
+        XCTAssertEqual(WindowControl.frame(for: "two-thirds-right", in: screen, current: cur)?.width, 1280)
+        XCTAssertEqual(WindowControl.frame(for: "bottom-right", in: screen, current: cur), CGRect(x: 960, y: 0, width: 960, height: 525))
+        XCTAssertEqual(WindowControl.frame(for: "max", in: screen, current: cur), screen)
+    }
+
+    func testCenterKeepsSizeAndOffsetScreens() {
+        let second = CGRect(x: 1920, y: 0, width: 1920, height: 1050)
+        let c = WindowControl.frame(for: "center", in: second, current: CGRect(x: 0, y: 0, width: 800, height: 600))
+        XCTAssertEqual(c, CGRect(x: 1920 + 560, y: 225, width: 800, height: 600))
+        XCTAssertEqual(WindowControl.frame(for: "left", in: second, current: .zero)?.minX, 1920)
+        XCTAssertNil(WindowControl.frame(for: "next-display", in: screen, current: .zero), "handled separately")
+    }
+
+    func testEveryLayoutIsReachable() {
+        let menu = WindowMenu.shared.children("windows:layouts")
+        let count = menu.reduce(0) { $0 + ($1.children?.count ?? 0) }
+        XCTAssertEqual(count, WindowControl.layouts.count)
+        XCTAssertEqual(WindowMenu.commandResults("window left").first?.name, "Window: Left Half")
+        XCTAssertTrue(WindowMenu.commandResults("safari").isEmpty)
+    }
+}

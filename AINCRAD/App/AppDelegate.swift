@@ -78,6 +78,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         BattleLog.shared.start()
         QuestActions.notify = { [weak self] text, title in self?.scriptHost.showMessage(text, from: title) }
         SystemMenu.shared.appSettings = { [weak self] in self?.store.settings ?? AppSettings() }
+        WindowControl.targetApp = { [weak self] in self?.launcher?.previousApp }
         DockStore.shared.load()
         ExpStore.shared.start()
         launcher?.recents.start()
@@ -351,6 +352,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         case let b where b.hasPrefix("macset:"):
             if let done = MacSettings.perform(b) { scriptHost.showMessage(done, from: "Settings") }
         case let b where b.hasPrefix("profiles:"): runProfile(b)
+        case let b where b.hasPrefix("windows:"):
+            // The launcher has just closed; give the previous app a moment to be frontmost again.
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) { [weak self] in
+                if let problem = WindowMenu.shared.perform(b) { self?.scriptHost.showMessage(problem, from: "Windows") }
+            }
         case let n where n.hasPrefix("prism:"):
             // Prism Launcher starts an instance by its folder name.
             let p = Process()

@@ -107,6 +107,14 @@ deep-links to the right System Settings page.
 
 ## 5. Windows and Spaces
 
+> **Built (Oct 15):** Command Center › Windows has three parts.
+> - **Switch To:** every window in every app, minimized ones included.
+> - **Arrange Window:** 18 layouts (halves, thirds, two-thirds, quarters, maximize, almost
+>   maximize, center, next display, restore) for the window you were using.
+> - **Workspaces.**
+>
+> You can also type `window left`, `window top right` and so on in the launcher. Spaces stay 🔴.
+
 - **Window switcher**: every window of every app, with titles, in an SAO list. 🟡 Accessibility
   (window lists already work in the dock).
 - **Tiling layouts**: halves, thirds and grids, plus saved layouts per display. 🟡 Accessibility

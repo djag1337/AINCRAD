@@ -5,6 +5,11 @@ Notable changes to AINCRAD. Dates are when a change landed, not a formal release
 ## Unreleased (0.2)
 
 ### Added
+- **Windows (roadmap phase 4).** Command Center › Windows has three parts:
+  - **Switch To:** any window in any app.
+  - **Arrange Window:** 18 layouts for the window you were using; also typed as `window left`
+    and so on in the launcher.
+  - **Workspaces.**
 - **Mac settings in the launcher (roadmap phase 3).**
   - System › Mac Settings changes 33 macOS settings in place: Dock, Finder, Mission Control,
     hot corners, keyboard and trackpad, screenshots, accent colour. Ones AINCRAD manages show a lock.
@@ -60,6 +65,9 @@ Notable changes to AINCRAD. Dates are when a change landed, not a formal release
 - The top bar names the app you were actually in, not a background helper.
 
 ### Fixed
+- Tiling from the launcher arranged nothing: it targeted AINCRAD itself (frontmost while the
+  launcher is open) and always the main display. It now arranges the window you came from, on
+  its own display.
 - HUD widgets showed stale content (the quest log, the EXP bar) after the speed-up that keeps
   their windows between opens. They now redraw whenever they appear.
 - Clicking outside an open dock or top-bar menu closed the whole launcher.

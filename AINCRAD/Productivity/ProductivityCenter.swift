@@ -360,7 +360,7 @@ final class ProductivityCenter {
             MenuItem(name: "Workspaces", icon: "sf:rectangle.3.group.fill", provider: "productivity:workspaces"),
             MenuItem(name: "Quests", icon: "sf:flag.checkered", provider: "quests:menu"),
             MenuItem(name: "Notes", icon: "sf:note.text", provider: "notes:list"),
-            MenuItem(name: "Window & System", icon: "sf:macwindow", provider: "productivity:system"),
+            WindowMenu.root(),
             MenuItem(name: "Extensions", icon: "sf:puzzlepiece.extension.fill", provider: "ext:all")
         ])
     }
@@ -379,9 +379,6 @@ final class ProductivityCenter {
         if lower.hasPrefix("workspace ") {
             let term = String(lower.dropFirst(10))
             return data.workspaces.filter { $0.name.lowercased().contains(term) }.map { MenuItem(name: "Open \($0.name)", icon: "sf:rectangle.3.group.fill", action: .builtin("productivity:workspace:\($0.id)")) }
-        }
-        if lower == "window left" || lower == "window right" || lower == "window max" {
-            let mode = String(lower.split(separator: " ").last!); return [MenuItem(name: "Move active window: \(mode)", icon: "sf:macwindow", action: .builtin("productivity:window:\(mode)"))]
         }
         return []
     }

@@ -94,6 +94,7 @@ final class LauncherController: NSObject, NSWindowDelegate, MenuViewDelegate {
             items.insert(SystemMenu.root(), at: 1)
         }
         SystemMenu.shared.onUpdate = { [weak self] provider in self?.menuView?.refreshColumns(provider: provider) }
+        WindowMenu.shared.onUpdate = { [weak self] provider in self?.menuView?.refreshColumns(provider: provider) }
         view.onColumnsChanged = { [weak self] rects in self?.onColumnsChanged?(rects) }
         view.present(items: items, cursor: cursor, theme: theme, motion: motion(theme), scale: screen.backingScaleFactor)
         let t2 = CACurrentMediaTime()
@@ -292,6 +293,7 @@ final class LauncherController: NSObject, NSWindowDelegate, MenuViewDelegate {
         case "productivity:suggestions": return productivity.suggestions()
         case "productivity:context": return productivity.contextMenu()
         case "quests:menu": return QuestActions.menuItems()
+        case let p where p.hasPrefix("windows:"): return WindowMenu.shared.children(p)
         case "notes:list": return NotesPad.menuItems()
         case let p where p.hasPrefix("system:") || p.hasPrefix("macsettings:") || p == "profiles:list":
             return SystemMenu.shared.children(p)
@@ -440,7 +442,7 @@ final class LauncherController: NSObject, NSWindowDelegate, MenuViewDelegate {
         }()
         let menu = (previewMenu ?? store.menu).root.filter(isVisible)
         searchEngine.files(query, completion: more)
-        return QuestActions.commandResults(query) + productivity.commandResults(query) + SearchEngine.instant(query, apps: apps, menu: menu)
+        return QuestActions.commandResults(query) + WindowMenu.commandResults(query) + productivity.commandResults(query) + SearchEngine.instant(query, apps: apps, menu: menu)
     }
 
     func menuViewDidOpenColumn(_ view: MenuView) {
