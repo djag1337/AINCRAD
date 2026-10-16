@@ -40,6 +40,8 @@ struct BrowserPrefs: Codable, Equatable {
     var rememberWindowSize = true
     var floatingToolbar = true
     var autoHideToolbar = true
+    /// Toolbar button size as a multiple of the launcher's circle (1.0 = same size).
+    var toolbarSize = 1.2
 
     /// Themes found in AINCRAD's themes folder, as (id, name).
     static func availableThemes() -> [(id: String, name: String)] {
@@ -151,13 +153,18 @@ struct BrowserPrefsForm: View {
                     ForEach(BrowserPrefs.availableThemes(), id: \.id) { Text($0.name).tag($0.id) }
                 }
                 Picker("New window size", selection: bind(\.windowSize)) {
-                    Text("Automatic (about 80% of the screen)").tag("auto")
+                    Text("Automatic (about 90% of the screen)").tag("auto")
                     Text("Compact").tag("compact")
                     Text("Large").tag("large")
                 }
                 Toggle("Remember each window's size and position", isOn: bind(\.rememberWindowSize))
                 Toggle("Floating toolbar (see-through, like the launcher)", isOn: bind(\.floatingToolbar))
                 Toggle("Hide the toolbar until the pointer reaches the top (⌘L also shows it)", isOn: bind(\.autoHideToolbar))
+                HStack {
+                    Text("Toolbar size")
+                    Slider(value: bind(\.toolbarSize), in: 0.8...1.6, step: 0.05)
+                    Text("\(Int((model.prefs.toolbarSize * 100).rounded()))%").monospacedDigit().frame(width: 48, alignment: .trailing)
+                }
                 Text("By default the browser wears whatever theme AINCRAD uses. Pick one here and the browser keeps it, whatever the launcher does: each part of AINCRAD can have its own theme.")
                     .font(.caption).foregroundStyle(.secondary)
             } header: { Text("Look") }
