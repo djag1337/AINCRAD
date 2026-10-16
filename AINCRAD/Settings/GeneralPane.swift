@@ -66,17 +66,6 @@ struct GeneralPane: View {
                     .font(.caption).foregroundStyle(.secondary)
             }
 
-            if BrowserLink.isInstalled {
-                Section {
-                    Toggle("Open web links in AINCRAD Browser", isOn: bind(\.openWebInAINCRADBrowser))
-                    Toggle("Show AINCRAD Browser downloads as SAO bubbles", isOn: bind(\.browserDownloadBubbles))
-                    Text("AINCRAD Browser is a separate app. It follows AINCRAD's theme, and lists its open tabs, bookmarks and history under Files › AINCRAD Browser. No permissions are involved; private browser windows are never shared.")
-                        .font(.caption).foregroundStyle(.secondary)
-                } header: {
-                    Text("AINCRAD Browser")
-                }
-            }
-
             Section {
                 Toggle("Use AINCRAD's switcher for ⌘-Tab", isOn: bind(\.cmdTabSwitcher))
                 Text("Hold ⌘ and press Tab for an SAO row of your apps, most recent first. ⇧Tab goes back, ← → move, Q quits and H hides the chosen app, Esc cancels; let go of ⌘ to switch. Uses the Accessibility access AINCRAD already has.")

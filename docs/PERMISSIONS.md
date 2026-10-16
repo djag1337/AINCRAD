@@ -47,6 +47,10 @@ The two apps stay separate. They talk without any macOS permission:
 | Web links from the launcher open in the browser | `NSWorkspace` opens the link with that app | **Settings › General › AINCRAD Browser** |
 | Finished downloads show as SAO bubbles | The browser announces the file name (never the contents) | **Settings › General › AINCRAD Browser** |
 
+**Installing it is opt-in.** AINCRAD Settings › Browser has a *Use AINCRAD Browser* switch. Turning it on shows a prompt that names the exact address (the latest release on
+github.com/djag1337/AINCRAD-Browser), then, only if you approve, downloads the zip, checks it is AINCRAD Browser and validly signed, and puts it in Applications. It needs no macOS permission. Turning the switch off asks, then moves the app to the Trash.
+The browser's own settings (search engine, blocking, reader mode and so on) are a page of that Settings window; they're stored in `~/Library/Application Support/AINCRAD Browser/preferences.json`.
+
 **Private windows are never shared**: their tabs, history and downloads stay out of all of this.
 Nothing leaves your Mac. The browser's ◎ button just opens the launcher (`aincrad://open`).
 

@@ -60,7 +60,7 @@ final class SettingsWindowController: NSWindowController, NSWindowDelegate {
 }
 
 struct SettingsView: View {
-    enum Tab: String, Hashable { case general, menu, themes, widgets, extensions, browse, commands, about }
+    enum Tab: String, Hashable { case general, menu, themes, widgets, extensions, browse, commands, browser, about }
     @EnvironmentObject var model: SettingsModel
 
     var body: some View {
@@ -72,6 +72,7 @@ struct SettingsView: View {
             ExtensionsPane(extensions: model.extensions).tabItem { Label("Extensions", systemImage: "puzzlepiece.extension") }.tag(Tab.extensions)
             BrowsePane(catalog: model.catalog).tabItem { Label("Browse", systemImage: "shippingbox") }.tag(Tab.browse)
             QuickCommandsPane().tabItem { Label("Quick Commands", systemImage: "command") }.tag(Tab.commands)
+            BrowserPane().tabItem { Label("Browser", systemImage: "globe") }.tag(Tab.browser)
             AboutPane().tabItem { Label("About", systemImage: "info.circle") }.tag(Tab.about)
         }
         .padding(12)

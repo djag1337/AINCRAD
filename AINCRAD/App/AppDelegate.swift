@@ -395,7 +395,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         case let b where b.hasPrefix("qc:"):
             QuickCommands.perform(b) { [weak self] text in self?.scriptHost.showMessage(text, from: "Commands") }
         case "settings:quickcommands": showSettings(tab: .commands)
-        case let b where b.hasPrefix("files:"):
+        case "settings:browser": showSettings(tab: .browser)        case let b where b.hasPrefix("files:"):
             if let message = FilesMenu.shared.perform(b, theme: store.theme) { scriptHost.showMessage(message, from: "Files") }
         case let b where b.hasPrefix("media:"):
             let parts = b.split(separator: ":").map(String.init)

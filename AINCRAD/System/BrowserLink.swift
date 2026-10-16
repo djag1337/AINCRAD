@@ -11,7 +11,14 @@ enum BrowserLink {
     static let browserChanged = Notification.Name("com.djag.aincrad.browser.changed")
     static let downloadFinished = Notification.Name("com.djag.aincrad.browser.downloadFinished")
 
-    static var appURL: URL? { NSWorkspace.shared.urlForApplication(withBundleIdentifier: bundleID) }
+    /// Where AINCRAD Browser is installed. Only /Applications and ~/Applications count: copies in the Trash or build folders aren't "installed".
+    static var appURL: URL? {
+        for folder in ["/Applications", NSHomeDirectory() + "/Applications"] {
+            let url = URL(fileURLWithPath: folder).appendingPathComponent("AINCRAD Browser.app")
+            if FileManager.default.fileExists(atPath: url.path) { return url }
+        }
+        return nil
+    }
     static var isInstalled: Bool { appURL != nil }
     static var isRunning: Bool { !NSRunningApplication.runningApplications(withBundleIdentifier: bundleID).isEmpty }
 
@@ -37,7 +44,10 @@ enum BrowserLink {
     // MARK: Launcher menu
 
     static func menuItem() -> MenuItem? {
-        guard isInstalled else { return nil }
+        guard isInstalled else {
+            return MenuItem(id: "browser:setup", name: "AINCRAD Browser…", icon: "sf:globe", action: .builtin("settings:browser"),
+                            description: "A companion web browser in your AINCRAD theme. Opens Settings, where you can install it (nothing downloads until you approve).")
+        }
         return MenuItem(id: "browser:root", name: "AINCRAD Browser", icon: appURL.map { "app:" + $0.path } ?? "sf:globe",
                         provider: "browser:root", description: "Your open tabs, bookmarks and history in AINCRAD Browser.")
     }
