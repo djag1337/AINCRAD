@@ -18,7 +18,7 @@ struct BrowserPane: View {
                 Toggle("Use AINCRAD Browser", isOn: Binding(get: { installed }, set: { on in on ? install() : remove() }))
                     .disabled(busy)
                 Text(installed
-                     ? "Installed. It follows your AINCRAD theme, and its tabs, bookmarks and history are under Files › AINCRAD Browser in the launcher."
+                     ? "Installed. It follows your AINCRAD theme, and its tabs, bookmarks and history are under the Web circle in the launcher."
                      : "Not installed. Turning this on asks first, then downloads AINCRAD Browser from \(BrowserInstaller.releasePage) and puts it in Applications.")
                     .font(.caption).foregroundStyle(.secondary)
                 if let status { Text(status).font(.callout) }
