@@ -6,6 +6,8 @@ final class NotificationBubbles {
     private final class Bubble {
         let panel: NSPanel
         var hideWork: DispatchWorkItem?
+        /// The display it's stacked on (bubbles stack per display).
+        var display: CGDirectDisplayID = 0
         init(panel: NSPanel) { self.panel = panel }
     }
 
@@ -17,10 +19,10 @@ final class NotificationBubbles {
 
     /// With `cover` (the macOS banner's frame), the bubble is drawn over the banner so only the SAO
     /// one shows; the real notification is left alone and files into Notification Center as usual.
-    func show(_ note: NotificationMirror.Note, theme: Theme, reducedMotion: Bool, cover: CGRect? = nil) {
+    func show(_ note: NotificationMirror.Note, theme: Theme, reducedMotion: Bool, cover: CGRect? = nil, on target: NSScreen? = nil) {
         let mouse = NSEvent.mouseLocation
         let coverScreen = cover.flatMap { c in NSScreen.screens.first { $0.frame.intersects(c) } }
-        guard let screen = coverScreen ?? NSScreen.screens.first(where: { NSMouseInRect(mouse, $0.frame, false) }) ?? NSScreen.main else { return }
+        guard let screen = target ?? coverScreen ?? NSScreen.screens.first(where: { NSMouseInRect(mouse, $0.frame, false) }) ?? NSScreen.main else { return }
         let width = cover.map { max(self.width, $0.width + 8) } ?? self.width
         let c = theme.colors
         let titleFont = ThemeFonts.display(theme, 15), bodyFont = ThemeFonts.body(theme, 15)
@@ -108,8 +110,10 @@ final class NotificationBubbles {
         if bodyH > 0 { text(note.body, bodyFont, bodyH + 2, alpha: 0.85, wrap: true) }
 
         // Newest on top; older ones move down.
+        bubble.display = screen.displayID
         bubbles.insert(bubble, at: 0)
-        if bubbles.count > maxVisible { bubbles.suffix(from: maxVisible).forEach { dismiss($0, reducedMotion: true) } }
+        let here = bubbles.filter { $0.display == bubble.display }
+        if here.count > maxVisible { here.suffix(from: maxVisible).forEach { dismiss($0, reducedMotion: true) } }
         let vf = screen.visibleFrame
         panel.setFrameOrigin(NSPoint(x: vf.maxX - panel.frame.width - 6, y: vf.maxY - panel.frame.height - 6))
         restack(screen: screen, except: bubble)
@@ -140,7 +144,7 @@ final class NotificationBubbles {
     private func restack(screen: NSScreen, except newest: Bubble) {
         let vf = screen.visibleFrame
         var top = vf.maxY - 6
-        for b in bubbles {
+        for b in bubbles where b.display == screen.displayID {
             let f = b.panel.frame
             let origin = NSPoint(x: vf.maxX - f.width - 6, y: top - f.height)
             // Window origins don't animate through the animator proxy; whole frames do.
@@ -166,7 +170,8 @@ final class NotificationBubbles {
             ctx.duration = reducedMotion ? 0.05 : 0.2
             bubble.panel.animator().alphaValue = 0
         }, completionHandler: { bubble.panel.orderOut(nil) })
-        if let screen = bubble.panel.screen, let first = bubbles.first { restack(screen: screen, except: first) }
+        if let screen = NSScreen.screens.first(where: { $0.displayID == bubble.display }),
+           let first = bubbles.first(where: { $0.display == bubble.display }) { restack(screen: screen, except: first) }
     }
 
     private final class BubbleView: NSView {

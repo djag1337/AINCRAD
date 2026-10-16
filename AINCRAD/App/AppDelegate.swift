@@ -317,7 +317,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private func showBubble(_ note: NotificationMirror.Note, cover: CGRect? = nil) {
         let s = store.settings.reducedMotion
         let reduced = s == "on" || (s == "system" && NSWorkspace.shared.accessibilityDisplayShouldReduceMotion)
-        bubbles.show(note, theme: store.theme, reducedMotion: reduced, cover: cover)
+        // Which displays: the main one (where macOS shows banners), every one, or the one under the pointer.
+        let screens: [NSScreen?]
+        switch store.settings.notificationDisplays {
+        case "main": screens = [NSScreen.screens.first]
+        case "all": screens = NSScreen.screens
+        default: screens = [nil]
+        }
+        for screen in screens {
+            // Cover the banner only on the display it's actually on.
+            let here = screen.map { s in cover.map { s.frame.intersects($0) } ?? false } ?? true
+            bubbles.show(note, theme: store.theme, reducedMotion: reduced, cover: here ? cover : nil, on: screen)
+        }
         BattleLog.shared.add("\(note.app): \(note.title)", symbol: "bell.fill")
         SoundPlayer.shared.enabled = store.settings.soundsEnabled
         SoundPlayer.shared.play(.open)

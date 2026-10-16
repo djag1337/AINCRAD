@@ -145,6 +145,11 @@ struct GeneralPane: View {
                         model.update { $0.notificationBubbles = on }
                         if on && !hasAccess { model.actions.requestAccessibility() }
                     }))
+                Picker("Show bubbles on", selection: bind(\.notificationDisplays)) {
+                    Text("The display under the pointer").tag("pointer")
+                    Text("The main display").tag("main")
+                    Text("Every display").tag("all")
+                }
                 Toggle("Cover the macOS banner with the bubble", isOn: bind(\.notificationsHideOriginal))
                 Text("AINCRAD never closes or clears notifications. They stay in Notification Center and on your iPhone and other devices.")
                     .font(.caption).foregroundStyle(.secondary)
