@@ -159,7 +159,7 @@ struct BrowserPrefsForm: View {
                 }
                 Toggle("Remember each window's size and position", isOn: bind(\.rememberWindowSize))
                 Toggle("Floating toolbar (see-through, like the launcher)", isOn: bind(\.floatingToolbar))
-                Toggle("Hide the toolbar until the pointer reaches the top (⌘L also shows it)", isOn: bind(\.autoHideToolbar))
+                Toggle("Hide the toolbar until the pointer reaches the bottom edge (⌘L also shows it)", isOn: bind(\.autoHideToolbar))
                 HStack {
                     Text("Toolbar size")
                     Slider(value: bind(\.toolbarSize), in: 0.8...1.6, step: 0.05)
