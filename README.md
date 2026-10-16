@@ -56,6 +56,11 @@ Sixteen extensions come preinstalled (settings shortcuts, quick folders, player 
 reminder, dice and more), and the [community catalog](https://github.com/djag1337/AINCRAD-catalog)
 has more you can install from inside the app.
 
+**AINCRAD Browser, its companion.** A separate web browser (its own app, not built in) that
+wears your AINCRAD theme and switches the moment you do. When both are installed, the launcher's
+Files menu lists the browser's open tabs, bookmarks and history, web links open in it, and finished
+downloads become SAO bubbles. It works without AINCRAD too, and private windows are never shared.
+
 **A game shelf.** Steam (every library folder), Heroic (GOG and Epic), Prism Launcher instances
 and regular game apps, all in one Games menu.
 

@@ -3,6 +3,8 @@ import AppKit
 enum ActionRunner {
     /// Set from settings; shell actions are refused unless the user turned this on.
     static var allowShell = false
+    /// Open web links in AINCRAD Browser (when installed) instead of the default browser.
+    static var webInAINCRADBrowser = true
 
     static func run(_ action: MenuAction, builtin: (String) -> Void) {
         switch action {
@@ -23,7 +25,7 @@ enum ActionRunner {
             Log.info("open \(url.path)")
         case .url(let string):
             guard let url = URL(string: string), url.scheme != nil else { return fail("bad url: \(string)") }
-            NSWorkspace.shared.open(url)
+            if !BrowserLink.open(url, preferBrowser: webInAINCRADBrowser) { NSWorkspace.shared.open(url) }
             Log.info("open url \(string)")
         case .builtin(let name):
             builtin(name)

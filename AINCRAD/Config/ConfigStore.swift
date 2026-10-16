@@ -10,8 +10,12 @@ final class ConfigStore {
     var menuURL: URL { directory.appendingPathComponent("menu.json") }
     var themesURL: URL { directory.appendingPathComponent("themes", isDirectory: true) }
 
-    private(set) var settings = AppSettings()
-    private(set) var theme = Theme.classic
+    private(set) var settings = AppSettings() {
+        didSet { if settings.theme != oldValue.theme || settings.playerName != oldValue.playerName { BrowserLink.announceTheme() } }
+    }
+    private(set) var theme = Theme.classic {
+        didSet { if theme != oldValue { BrowserLink.announceTheme() } }
+    }
     private(set) var menu = MenuFile(root: [])
     private(set) var problems: [String] = []
 

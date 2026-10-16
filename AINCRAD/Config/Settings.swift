@@ -74,6 +74,10 @@ struct AppSettings: Codable, Equatable {
     var notificationDisplays = "pointer"
     /// Quick command id → on/off; missing ids use the command's default (off if it needs a permission).
     var quickCommands: [String: Bool] = [:]
+    /// Open web links from the launcher in AINCRAD Browser when it's installed.
+    var openWebInAINCRADBrowser = true
+    /// Show AINCRAD Browser's finished downloads as SAO bubbles.
+    var browserDownloadBubbles = true
     var notificationSeconds = 6.0
     /// Your catalog repository (a clone of the GitHub repo) for the Publish buttons.
     var catalogRepoPath = "~/Documents/AINCRAD-catalog"

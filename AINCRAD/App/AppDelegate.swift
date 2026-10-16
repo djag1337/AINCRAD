@@ -76,6 +76,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             ExpStore.shared.gain(10)
         }
         BattleLog.shared.start()
+        // AINCRAD Browser: finished downloads become SAO bubbles; a refreshed tab list is read on demand.
+        DistributedNotificationCenter.default().addObserver(forName: BrowserLink.downloadFinished, object: nil, queue: .main) { [weak self] note in
+            guard let self, self.store.settings.browserDownloadBubbles, let name = note.userInfo?["name"] as? String else { return }
+            self.showBubble(.init(app: "AINCRAD Browser", title: "Download complete", body: name))
+        }
         QuestActions.notify = { [weak self] text, title in self?.scriptHost.showMessage(text, from: title) }
         SystemMenu.shared.appSettings = { [weak self] in self?.store.settings ?? AppSettings() }
         WindowControl.targetApp = { [weak self] in self?.launcher?.previousApp }
@@ -214,6 +219,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         itemShortcuts.unregister()
         hotKeyProblem = nil
         ActionRunner.allowShell = store.settings.allowShellCommands
+        ActionRunner.webInAINCRADBrowser = store.settings.openWebInAINCRADBrowser
         productivity.enabled = store.settings.productivityEnabled
         productivity.clipboardLimit = store.settings.clipboardHistoryLimit
         applyShell()

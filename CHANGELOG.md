@@ -5,6 +5,9 @@ Notable changes to AINCRAD. Dates are when a change landed, not a formal release
 ## Unreleased (0.2)
 
 ### Added
+- **AINCRAD Browser link**: Files › AINCRAD Browser lists the browser's open tabs (click to switch),
+  bookmarks and history; web links open in it; its downloads become SAO bubbles; theme changes
+  reach it instantly. Two switches in Settings › General. No permissions; private windows never shared.
 - **Quick commands** in the launcher search: `remind`, `event`, `note`, `applenote`, `contact`,
   `message`, `mail`, `facetime`, `play`/`next`, `volume`, `dark`/`light`, `define`.
   - **Each has a switch** in the new Settings › Quick Commands tab.

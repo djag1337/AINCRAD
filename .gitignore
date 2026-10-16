@@ -9,3 +9,4 @@ DerivedData/
 # Xcode / macOS
 xcuserdata/
 .DS_Store
+.claude/

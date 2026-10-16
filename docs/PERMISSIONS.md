@@ -36,6 +36,20 @@ AINCRAD never asks for **Full Disk Access**, **Screen Recording**, the **camera*
 a notification (an early version did, which removed them from synced devices; that was a bug and is
 gone, with a test that guards against it).
 
+## AINCRAD Browser (optional companion app)
+
+The two apps stay separate. They talk without any macOS permission:
+
+| What | How | Can you turn it off? |
+|---|---|---|
+| The browser uses your theme and player name | It reads AINCRAD's theme files; AINCRAD announces theme changes with a local notification | Uninstall either app |
+| Launcher lists browser tabs, bookmarks and history | The browser writes `~/Library/Application Support/AINCRAD Browser/link.json` (titles and addresses only) | Remove the browser; the menu disappears |
+| Web links from the launcher open in the browser | `NSWorkspace` opens the link with that app | **Settings › General › AINCRAD Browser** |
+| Finished downloads show as SAO bubbles | The browser announces the file name (never the contents) | **Settings › General › AINCRAD Browser** |
+
+**Private windows are never shared**: their tabs, history and downloads stay out of all of this.
+Nothing leaves your Mac. The browser's ◎ button just opens the launcher (`aincrad://open`).
+
 ## Quick commands
 
 Type these in the launcher's search and press Return. Each one has its own switch in
