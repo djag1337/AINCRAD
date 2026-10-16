@@ -39,6 +39,7 @@ struct BrowserPrefs: Codable, Equatable {
     var restoreSession = true
     var rememberWindowSize = true
     var floatingToolbar = true
+    var hasSeenIntro = false
     var autoHideToolbar = true
     /// Toolbar button size as a multiple of the launcher's circle (1.0 = same size).
     var toolbarSize = 1.0
@@ -168,6 +169,14 @@ struct BrowserPrefsForm: View {
                 Text("By default the browser wears whatever theme AINCRAD uses. Pick one here and the browser keeps it, whatever the launcher does: each part of AINCRAD can have its own theme.")
                     .font(.caption).foregroundStyle(.secondary)
             } header: { Text("Look") }
+
+            Section {
+                Button("Show the introduction again") {
+                    if let url = URL(string: "aincrad-browser://welcome") { NSWorkspace.shared.open(url) }
+                }
+                Text("Opens a new browser window with the welcome tour (it also shows once on first launch).")
+                    .font(.caption).foregroundStyle(.secondary)
+            } header: { Text("Introduction") }
 
             Section("Search") {
                 Picker("Search engine", selection: bind(\.searchEngine)) {
