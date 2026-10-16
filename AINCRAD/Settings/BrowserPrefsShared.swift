@@ -40,6 +40,8 @@ struct BrowserPrefs: Codable, Equatable {
     var rememberWindowSize = true
     var floatingToolbar = true
     var hasSeenIntro = false
+    /// false: files save straight to Downloads (links that expire aren't kept waiting); true: a save dialog each time.
+    var askDownloadLocation = false
     var autoHideToolbar = true
     /// Toolbar button size as a multiple of the launcher's circle (1.0 = same size).
     var toolbarSize = 1.0
@@ -177,6 +179,12 @@ struct BrowserPrefsForm: View {
                 Text("Opens a new browser window with the welcome tour (it also shows once on first launch).")
                     .font(.caption).foregroundStyle(.secondary)
             } header: { Text("Introduction") }
+
+            Section {
+                Toggle("Ask where to save each download", isOn: bind(\.askDownloadLocation))
+                Text("Off: downloads save straight to your Downloads folder. That avoids time-limited links (like converter sites) expiring while a dialog is open. macOS asks once whether the browser may use your Downloads folder.")
+                    .font(.caption).foregroundStyle(.secondary)
+            } header: { Text("Downloads") }
 
             Section("Search") {
                 Picker("Search engine", selection: bind(\.searchEngine)) {
