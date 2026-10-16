@@ -25,6 +25,7 @@ struct GeneralPane: View {
                     Text("In the centre of the display").tag("center")
                 }
                 Toggle("Pause all activation", isOn: bind(\.activationPaused))
+                Toggle("Scroll long lists when the pointer rests near their edges", isOn: bind(\.hoverScrollLists))
                 TextField("Player name (HUD)", text: bind(\.playerName), prompt: Text(NSFullUserName().split(separator: " ").first.map(String.init) ?? "Player"))
             }
 

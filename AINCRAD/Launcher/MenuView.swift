@@ -113,6 +113,10 @@ final class MenuView: NSView {
     private var g: Theme.Geometry { theme.geometry }
     private var d: CGFloat { g.circleDiameter }
     private var pitch: CGFloat { g.itemHeight + g.itemSpacing }
+    // The root circles slide so a picked one sits in the middle of the screen (and slide back when it's closed).
+    private var rootTopY: CGFloat = 0
+    private var rootPitchY: CGFloat = 0
+    private var rootDY: CGFloat = 0
     private let captionWidth: CGFloat = 170
     private var showInfo: Bool { theme.effects.showInfoPanel }
     private var leftReserve: CGFloat { showInfo ? g.infoPanelWidth + g.infoPanelGap : captionWidth }
@@ -164,6 +168,7 @@ final class MenuView: NSView {
             content.opacity = 1
             shift = 0
             let top = anchor.y - rootH / 2
+            rootTopY = top; rootPitchY = pitchRoot; rootDY = 0
             for (i, item) in visible.enumerated() {
                 let c = makeCircle(item)
                 c.center = CGPoint(x: anchor.x, y: top + d / 2 + CGFloat(i) * pitchRoot)
@@ -220,6 +225,7 @@ final class MenuView: NSView {
     }
 
     private func teardown() {
+        stopEdgeScroll()
         if !lastColumnRects.isEmpty { lastColumnRects = []; onColumnsChanged?([]) }
         Motion.instant {
             circles.forEach { $0.layer.removeFromSuperlayer() }
@@ -508,7 +514,29 @@ final class MenuView: NSView {
         return circles[s].center.y
     }
 
+    private func positionRoot() {
+        for (i, c) in circles.enumerated() {
+            let y = rootTopY + d / 2 + CGFloat(i) * rootPitchY + rootDY
+            c.center = CGPoint(x: c.center.x, y: y)
+            c.layer.frame = CGRect(x: c.center.x - d / 2, y: y - d / 2, width: d, height: d)
+        }
+    }
+
+    /// Slides the root circles so circle `i` is as near the middle of the screen as the column allows.
+    private func centerRoot(on i: Int) {
+        guard i < circles.count, rootPitchY > 0 else { return }
+        let baseY = rootTopY + d / 2 + CGFloat(i) * rootPitchY
+        let area = safeArea ?? bounds
+        let rootH = CGFloat(circles.count) * rootPitchY - g.circleSpacing
+        var dy = area.midY - baseY
+        if rootH <= area.height - g.screenMargin {
+            dy = min(max(dy, area.minY + g.screenMargin / 2 - rootTopY), area.maxY - g.screenMargin / 2 - (rootTopY + rootH))
+        }
+        rootDY = dy
+    }
+
     private func layoutColumns() {
+        positionRoot()
         columns.forEach(place)
         placeInfo()
         let right = columns.last.map { $0.x + g.itemWidth } ?? anchor.x + d / 2
@@ -801,6 +829,7 @@ final class MenuView: NSView {
             rootFocus = h.index
             if rootSelected == h.index {
                 rootSelected = nil
+                rootDY = 0
                 closeColumns(from: 1)
                 active = 0
                 sound(.back)
@@ -808,6 +837,7 @@ final class MenuView: NSView {
             }
             sound(.select)
             rootSelected = h.index
+            centerRoot(on: h.index)
             closeColumns(from: 1)
             update()
             if item.hasSubmenu {
@@ -881,7 +911,7 @@ final class MenuView: NSView {
         closeColumns(from: active)
         sound(.back)
         active -= 1
-        if active == 0 { rootSelected = nil } else { columns[active - 1].selected = nil }
+        if active == 0 { rootSelected = nil; rootDY = 0 } else { columns[active - 1].selected = nil }
         update()
     }
 
@@ -925,11 +955,48 @@ final class MenuView: NSView {
             if i != contextHover { contextHover = i; if i != nil { sound(.hover) }; refreshContext() }
             return
         }
-        let h = hit(convert(event.locationInWindow, from: nil))
+        let point = convert(event.locationInWindow, from: nil)
+        lastMouse = point
+        let h = hit(point)
         guard h != hover else { return }
         hover = h
         if h != nil { sound(.hover) }
         motion.animate(theme.animation.highlight) { refreshStates() }
+        updateEdgeScroll()
+    }
+
+    // MARK: Hover scrolling
+
+    /// Resting the pointer on a row a few places from the middle of a column scrolls the list toward it, one row
+    /// at a time, until that row reaches the middle (or the list ends). Long lists like open tabs stay readable
+    /// without the scroll wheel.
+    static var hoverScroll = true
+    private var edgeTimer: Timer?
+    private var lastMouse: CGPoint?
+
+    private func edgeTarget() -> (level: Int, direction: Int)? {
+        guard Self.hoverScroll, !closing, context == nil, !searching, let h = hover, h.level >= 1, h.level <= columns.count else { return nil }
+        let distance = h.index - columns[h.level - 1].focus
+        return abs(distance) >= 3 ? (h.level, distance > 0 ? 1 : -1) : nil
+    }
+
+    private func stopEdgeScroll() { edgeTimer?.invalidate(); edgeTimer = nil }
+
+    private func updateEdgeScroll() {
+        guard edgeTarget() != nil else { stopEdgeScroll(); return }
+        guard edgeTimer == nil else { return }
+        edgeTimer = Timer.scheduledTimer(withTimeInterval: 0.14, repeats: true) { [weak self] _ in self?.edgeTick() }
+    }
+
+    private func edgeTick() {
+        guard let point = lastMouse else { stopEdgeScroll(); return }
+        hover = hit(point)   // the rows moved since the pointer did
+        guard let target = edgeTarget() else { stopEdgeScroll(); return }
+        makeActive(target.level)
+        setFocus(currentFocus + target.direction)
+        hover = hit(point)
+        motion.animate(theme.animation.highlight) { refreshStates() }
+        if edgeTarget() == nil { stopEdgeScroll() }
     }
 
     override func mouseDown(with event: NSEvent) {

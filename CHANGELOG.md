@@ -5,6 +5,8 @@ Notable changes to AINCRAD. Dates are when a change landed, not a formal release
 ## Unreleased (0.2)
 
 ### Added
+- **Hover scrolling**: resting the pointer on a row a few places from the middle of a column scrolls the list toward it, so long lists (open tabs, apps) stay readable. Switch in Settings › General.
+- **Click to centre**: picking a launcher circle slides the circle column so it sits as near the middle of the screen as it fits.
 - The launcher's **Web** circle is now AINCRAD Browser's home: New Tab, Open Tabs, Bookmark Current Page, Bookmarks, History and New Private Window sit above your own links (it used to be under Files).
 - **Settings redesigned** as a native-style window: a vertical sidebar of icons (General, Menu, Themes, Widgets, Extensions, Browse, Quick Commands, Browser, About) and a clip-art AINCRAD logo, in your theme's accent, at the top right.
 - **Settings › Browser**: opt in to AINCRAD Browser (installs from its GitHub release after you approve), the link switches, and the browser's whole settings page (search engine, ad/tracker blocking, https upgrades, reader mode, dark pages, custom CSS, start page…).

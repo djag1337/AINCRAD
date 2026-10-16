@@ -220,6 +220,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         hotKeyProblem = nil
         ActionRunner.allowShell = store.settings.allowShellCommands
         ActionRunner.webInAINCRADBrowser = store.settings.openWebInAINCRADBrowser
+        MenuView.hoverScroll = store.settings.hoverScrollLists
         productivity.enabled = store.settings.productivityEnabled
         productivity.clipboardLimit = store.settings.clipboardHistoryLimit
         applyShell()

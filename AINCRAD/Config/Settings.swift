@@ -40,6 +40,8 @@ struct AppSettings: Codable, Equatable {
     /// "system" follows macOS Reduce Motion; "on" / "off" override it.
     var reducedMotion = "system"
     var activationPaused = false
+    /// Resting the pointer near the edge of a long list scrolls it.
+    var hoverScrollLists = true
     var soundsEnabled = true
     /// Shell-command menu actions are refused unless this is on (protects imported menus).
     var allowShellCommands = false
