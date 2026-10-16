@@ -12,8 +12,8 @@ final class SettingsWindowController: NSWindowController, NSWindowDelegate {
         let window = NSWindow(contentViewController: host)
         window.title = "AINCRAD Settings"
         window.styleMask = [.titled, .closable, .miniaturizable, .resizable]
-        window.setContentSize(NSSize(width: 940, height: 640))
-        window.minSize = NSSize(width: 820, height: 520)
+        window.setContentSize(NSSize(width: 1040, height: 680))
+        window.minSize = NSSize(width: 900, height: 560)
         window.setFrameAutosaveName("AINCRADSettings")
         window.isReleasedWhenClosed = false
         super.init(window: window)
@@ -60,25 +60,138 @@ final class SettingsWindowController: NSWindowController, NSWindowDelegate {
 }
 
 struct SettingsView: View {
-    enum Tab: String, Hashable { case general, menu, themes, widgets, extensions, browse, commands, browser, about }
+    enum Tab: String, Hashable, CaseIterable {
+        case general, menu, themes, widgets, extensions, browse, commands, browser, about
+
+        var title: String {
+            switch self {
+            case .general: "General"; case .menu: "Menu"; case .themes: "Themes"; case .widgets: "Widgets"
+            case .extensions: "Extensions"; case .browse: "Browse"; case .commands: "Quick Commands"
+            case .browser: "Browser"; case .about: "About"
+            }
+        }
+        var icon: String {
+            switch self {
+            case .general: "gearshape.fill"; case .menu: "list.bullet.indent"; case .themes: "paintpalette.fill"
+            case .widgets: "square.grid.2x2.fill"; case .extensions: "puzzlepiece.extension.fill"; case .browse: "shippingbox.fill"
+            case .commands: "command"; case .browser: "globe"; case .about: "info.circle.fill"
+            }
+        }
+        var tint: Color {
+            switch self {
+            case .general: .gray; case .menu: .blue; case .themes: .pink; case .widgets: .orange
+            case .extensions: .purple; case .browse: .brown; case .commands: .indigo; case .browser: .teal; case .about: .gray
+            }
+        }
+    }
+
     @EnvironmentObject var model: SettingsModel
+    private let groups: [(String, [Tab])] = [
+        ("Launcher", [.general, .menu, .themes, .widgets]),
+        ("Extend", [.extensions, .browse, .commands]),
+        ("Ecosystem", [.browser]),
+        ("", [.about]),
+    ]
 
     var body: some View {
-        TabView(selection: $model.tab) {
-            GeneralPane().tabItem { Label("General", systemImage: "gearshape") }.tag(Tab.general)
-            MenuEditorPane().tabItem { Label("Menu", systemImage: "list.bullet.indent") }.tag(Tab.menu)
-            ThemesPane().tabItem { Label("Themes", systemImage: "paintpalette") }.tag(Tab.themes)
-            WidgetsPane(widgets: model.widgets).tabItem { Label("Widgets", systemImage: "square.grid.2x2") }.tag(Tab.widgets)
-            ExtensionsPane(extensions: model.extensions).tabItem { Label("Extensions", systemImage: "puzzlepiece.extension") }.tag(Tab.extensions)
-            BrowsePane(catalog: model.catalog).tabItem { Label("Browse", systemImage: "shippingbox") }.tag(Tab.browse)
-            QuickCommandsPane().tabItem { Label("Quick Commands", systemImage: "command") }.tag(Tab.commands)
-            BrowserPane().tabItem { Label("Browser", systemImage: "globe") }.tag(Tab.browser)
-            AboutPane().tabItem { Label("About", systemImage: "info.circle") }.tag(Tab.about)
+        HStack(spacing: 0) {
+            List(selection: Binding(get: { Optional(model.tab) }, set: { if let t = $0 { model.tab = t } })) {
+                ForEach(groups, id: \.0) { name, tabs in
+                    Section(name) {
+                        ForEach(tabs, id: \.self) { tab in
+                            Label {
+                                Text(tab.title)
+                            } icon: {
+                                Image(systemName: tab.icon)
+                                    .font(.system(size: 12, weight: .semibold))
+                                    .foregroundStyle(.white)
+                                    .frame(width: 24, height: 24)
+                                    .background(tab.tint.gradient, in: RoundedRectangle(cornerRadius: 6))
+                            }
+                            .tag(tab)
+                            .padding(.vertical, 2)
+                        }
+                    }
+                }
+            }
+            .listStyle(.sidebar)
+            .frame(width: 214)
+
+            Divider()
+
+            VStack(spacing: 0) {
+                HStack(spacing: 10) {
+                    Image(systemName: model.tab.icon).font(.title2).foregroundStyle(model.tab.tint)
+                    Text(model.tab.title).font(.title2.weight(.semibold))
+                    Spacer()
+                    AINCRADLogo(accent: Color(hex: model.store.theme.colors.accent))
+                        .frame(width: 84, height: 44)
+                }
+                .padding(.horizontal, 22).padding(.vertical, 10)
+                Divider()
+                pane.padding(12).frame(maxWidth: .infinity, maxHeight: .infinity)
+            }
         }
-        .padding(12)
         .alert(model.message ?? "", isPresented: Binding(get: { model.message != nil }, set: { if !$0 { model.message = nil } })) {
             Button("OK", role: .cancel) {}
         }
+    }
+
+    @ViewBuilder private var pane: some View {
+        switch model.tab {
+        case .general: GeneralPane()
+        case .menu: MenuEditorPane()
+        case .themes: ThemesPane()
+        case .widgets: WidgetsPane(widgets: model.widgets)
+        case .extensions: ExtensionsPane(extensions: model.extensions)
+        case .browse: BrowsePane(catalog: model.catalog)
+        case .commands: QuickCommandsPane()
+        case .browser: BrowserPane()
+        case .about: AboutPane()
+        }
+    }
+}
+
+/// A flat, clip-art version of the app icon: the star circle and the highlighted menu row, in the theme's accent.
+struct AINCRADLogo: View {
+    let accent: Color
+
+    var body: some View {
+        HStack(spacing: 2) {
+            ZStack {
+                Circle().strokeBorder(accent, lineWidth: 2.5)
+                Circle().fill(Color(white: 0.35)).padding(3.5)
+                Circle().fill(accent).padding(5)
+                Image(systemName: "star.fill").font(.system(size: 13, weight: .bold)).foregroundStyle(.white)
+            }
+            .frame(width: 34, height: 34)
+            .shadow(color: accent.opacity(0.55), radius: 5)
+            Image(systemName: "arrowtriangle.left.fill").font(.system(size: 7)).foregroundStyle(accent)
+            VStack(spacing: 3) {
+                bar(.init(white: 0.78, opacity: 1), dot: Color(white: 0.4))
+                bar(accent, dot: .white).shadow(color: accent.opacity(0.5), radius: 3)
+                bar(.init(white: 0.78, opacity: 1), dot: Color(white: 0.4))
+            }
+        }
+    }
+
+    private func bar(_ fill: Color, dot: Color) -> some View {
+        HStack(spacing: 3) {
+            Circle().fill(dot).frame(width: 5, height: 5)
+            Capsule().fill(dot.opacity(0.7)).frame(height: 2)
+        }
+        .padding(.horizontal, 4).frame(width: 36, height: 9)
+        .background(fill, in: RoundedRectangle(cornerRadius: 2))
+    }
+}
+
+extension Color {
+    /// "#RRGGBB" (an optional trailing alpha is ignored); falls back to the classic orange.
+    init(hex: String) {
+        var h = hex.trimmingCharacters(in: .whitespaces)
+        if h.hasPrefix("#") { h.removeFirst() }
+        let v = UInt64(h.prefix(6), radix: 16) ?? 0xF5A623
+        self.init(.sRGB, red: Double((v >> 16) & 0xFF) / 255, green: Double((v >> 8) & 0xFF) / 255, blue: Double(v & 0xFF) / 255)
     }
 }
 
