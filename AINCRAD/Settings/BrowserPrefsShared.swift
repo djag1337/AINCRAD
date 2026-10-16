@@ -39,6 +39,7 @@ struct BrowserPrefs: Codable, Equatable {
     var restoreSession = true
     var rememberWindowSize = true
     var floatingToolbar = true
+    var autoHideToolbar = true
 
     /// Themes found in AINCRAD's themes folder, as (id, name).
     static func availableThemes() -> [(id: String, name: String)] {
@@ -156,6 +157,7 @@ struct BrowserPrefsForm: View {
                 }
                 Toggle("Remember each window's size and position", isOn: bind(\.rememberWindowSize))
                 Toggle("Floating toolbar (see-through, like the launcher)", isOn: bind(\.floatingToolbar))
+                Toggle("Hide the toolbar until the pointer reaches the top (⌘L also shows it)", isOn: bind(\.autoHideToolbar))
                 Text("By default the browser wears whatever theme AINCRAD uses. Pick one here and the browser keeps it, whatever the launcher does: each part of AINCRAD can have its own theme.")
                     .font(.caption).foregroundStyle(.secondary)
             } header: { Text("Look") }
