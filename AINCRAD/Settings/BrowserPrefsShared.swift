@@ -5,6 +5,10 @@ import SwiftUI
 // so AINCRAD's Settings and the browser's own window are literally the same page.
 
 struct BrowserPrefs: Codable, Equatable {
+    /// "follow" uses AINCRAD's current theme; otherwise the id of a theme in AINCRAD's themes folder.
+    var theme = "follow"
+    /// "auto" (about 80% of the screen), "compact" or "large".
+    var windowSize = "auto"
     var searchEngine = "duckduckgo"
     var customSearchTemplate = "https://example.com/search?q=%s"
 
@@ -33,6 +37,18 @@ struct BrowserPrefs: Codable, Equatable {
     var showClock = true
     var newTabPage = "start"
     var restoreSession = true
+    var rememberWindowSize = true
+
+    /// Themes found in AINCRAD's themes folder, as (id, name).
+    static func availableThemes() -> [(id: String, name: String)] {
+        let folder = FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Library/Application Support/AINCRAD/themes")
+        let files = (try? FileManager.default.contentsOfDirectory(at: folder, includingPropertiesForKeys: nil)) ?? []
+        return files.filter { $0.pathExtension == "json" }.compactMap { url in
+            let id = url.deletingPathExtension().lastPathComponent
+            let name = (try? Data(contentsOf: url)).flatMap { try? JSONSerialization.jsonObject(with: $0) as? [String: Any] }?["name"] as? String
+            return (id, name ?? id)
+        }.sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
+    }
 
     static let engines: [(id: String, name: String, template: String)] = [
         ("duckduckgo", "DuckDuckGo", "https://duckduckgo.com/?q=%s"),
@@ -87,12 +103,20 @@ final class BrowserPrefsModel: ObservableObject {
     }
 
     func reload() {
-        guard let data = try? Data(contentsOf: Self.fileURL), let value = try? JSONDecoder().decode(BrowserPrefs.self, from: data) else { return }
+        guard let data = try? Data(contentsOf: Self.fileURL), let value = Self.decode(data) else { return }
         guard value != prefs else { return }
         loading = true
         prefs = value
         loading = false
         NotificationCenter.default.post(name: .browserPrefsChanged, object: nil)
+    }
+
+    /// Reads the file over the defaults, so a file saved by an older version (missing newer keys) still loads.
+    private static func decode(_ data: Data) -> BrowserPrefs? {
+        guard let saved = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any],
+              let base = (try? JSONEncoder().encode(BrowserPrefs())).flatMap({ try? JSONSerialization.jsonObject(with: $0) }) as? [String: Any],
+              let merged = try? JSONSerialization.data(withJSONObject: base.merging(saved) { _, new in new }) else { return nil }
+        return try? JSONDecoder().decode(BrowserPrefs.self, from: merged)
     }
 
     private func save() {
@@ -119,6 +143,21 @@ struct BrowserPrefsForm: View {
 
     var body: some View {
         Group {
+            Section {
+                Picker("Browser theme", selection: bind(\.theme)) {
+                    Text("Follow AINCRAD (default)").tag("follow")
+                    ForEach(BrowserPrefs.availableThemes(), id: \.id) { Text($0.name).tag($0.id) }
+                }
+                Picker("New window size", selection: bind(\.windowSize)) {
+                    Text("Automatic (about 80% of the screen)").tag("auto")
+                    Text("Compact").tag("compact")
+                    Text("Large").tag("large")
+                }
+                Toggle("Remember each window's size and position", isOn: bind(\.rememberWindowSize))
+                Text("By default the browser wears whatever theme AINCRAD uses. Pick one here and the browser keeps it, whatever the launcher does: each part of AINCRAD can have its own theme.")
+                    .font(.caption).foregroundStyle(.secondary)
+            } header: { Text("Look") }
+
             Section("Search") {
                 Picker("Search engine", selection: bind(\.searchEngine)) {
                     ForEach(BrowserPrefs.engines, id: \.id) { Text($0.name).tag($0.id) }
