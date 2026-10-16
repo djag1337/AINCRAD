@@ -41,7 +41,7 @@ struct BrowserPrefs: Codable, Equatable {
     var floatingToolbar = true
     var autoHideToolbar = true
     /// Toolbar button size as a multiple of the launcher's circle (1.0 = same size).
-    var toolbarSize = 1.2
+    var toolbarSize = 1.0
 
     /// Themes found in AINCRAD's themes folder, as (id, name).
     static func availableThemes() -> [(id: String, name: String)] {
