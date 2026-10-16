@@ -460,7 +460,7 @@ final class LauncherController: NSObject, NSWindowDelegate, MenuViewDelegate {
         }()
         let menu = (previewMenu ?? store.menu).root.filter(isVisible)
         searchEngine.files(query, completion: more)
-        return QuestActions.commandResults(query) + WindowMenu.commandResults(query) + productivity.commandResults(query) + SearchEngine.instant(query, apps: apps, menu: menu)
+        return QuickCommands.results(query, settings: store.settings) + WindowMenu.commandResults(query) + productivity.commandResults(query) + SearchEngine.instant(query, apps: apps, menu: menu)
     }
 
     func menuViewDidOpenColumn(_ view: MenuView) {

@@ -58,6 +58,8 @@
 	<string>The Quest log widget lists today's calendar events.</string>
 	<key>NSCalendarsUsageDescription</key>
 	<string>The Quest log widget lists today's calendar events.</string>
+	<key>NSContactsUsageDescription</key>
+	<string>Only for the contact, message, mail and facetime quick commands (off by default): finds the person you typed. Nothing is sent without you pressing Send.</string>
 	<key>NSHumanReadableCopyright</key>
 	<string>AINCRAD — an SAO-inspired launcher. Not affiliated with Sword Art Online rights holders.</string>
 	<key>NSLocationUsageDescription</key>

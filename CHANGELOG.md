@@ -5,6 +5,12 @@ Notable changes to AINCRAD. Dates are when a change landed, not a formal release
 ## Unreleased (0.2)
 
 ### Added
+- **Quick commands** in the launcher search: `remind`, `event`, `note`, `applenote`, `contact`,
+  `message`, `mail`, `facetime`, `play`/`next`, `volume`, `dark`/`light`, `define`.
+  - **Each has a switch** in the new Settings › Quick Commands tab.
+  - **Every one needing a permission is off by default.**
+  - Messages and mail open as drafts, never sent for you.
+  - A new `docs/PERMISSIONS.md` lists every permission AINCRAD can ask for.
 - **Opt-in system shortcuts (roadmap phase 6).**
   - ⌘-Tab opens an SAO app switcher, using an event tap like other app switchers do.
   - ⌘-Space opens the launcher.

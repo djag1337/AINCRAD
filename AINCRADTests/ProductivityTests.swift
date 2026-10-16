@@ -10,7 +10,7 @@ final class ProductivityTests: XCTestCase {
     func testCommandParserRecognizesTimerAndCapture() {
         let center = center()
         XCTAssertEqual(center.commandResults("timer 25").first?.action, .builtin("productivity:timer:25"))
-        guard case .builtin(let capture)? = center.commandResults("note remember the raid").first?.action else {
+        guard case .builtin(let capture)? = center.commandResults("capture remember the raid").first?.action else {
             return XCTFail("missing capture command")
         }
         XCTAssertTrue(capture.hasPrefix("productivity:captureText:"))

@@ -14,6 +14,12 @@ third-party libraries, and it's light enough to leave running all day on an old 
 
 > Unofficial fan project. Not affiliated with Sword Art Online or its rights holders.
 
+> **🔒 Permissions, plainly:** AINCRAD runs with **no permissions at all**. Every feature that
+> needs one (Accessibility, Calendar, Reminders, Contacts, Location, Bluetooth, Automation) is
+> **off until you turn it on**, or asks only **the first time you use it**: never at launch, never
+> while you type. It never sends, posts or deletes anything for you, and never closes your
+> notifications. **[Full list of every permission and every switch →](docs/PERMISSIONS.md)**
+
 ---
 
 ## What it does
@@ -106,6 +112,13 @@ It's designed not to. Nothing animates or polls while the launcher is closed, wi
 sampling when they're covered, and the launcher opens in a few milliseconds.
 [docs/PERFORMANCE.md](docs/PERFORMANCE.md) has the measurements.
 
+**What can I type in the search?**
+Quick commands: `remind`, `event`, `note`, `contact`, `message`, `mail`, `facetime`, `volume`,
+`define`, `window` and more. Type `commands` to list them. **Each one is a switch** in Settings ›
+Quick Commands, and **every one that needs a permission is off until you turn it on**. Messages and
+emails open as drafts; you press Send. The table with every command and its permission is in
+[docs/PERMISSIONS.md](docs/PERMISSIONS.md).
+
 **Why does it ask for Accessibility access?**
 For the features that need to see or press things in other apps: the mouse gesture, reading an
 app's menus for the top bar, listing windows in the dock, and mirroring notifications as SAO
@@ -141,6 +154,7 @@ menus, hiding the Dock), so for now you build it yourself.
 
 ## Docs
 
+- **[Permissions and quick commands](docs/PERMISSIONS.md)**: every permission, when it's asked, and every switch
 - [Configuration and menus](docs/CONFIGURATION.md)
 - [Themes](docs/THEMES.md)
 - [Widgets](docs/WIDGETS.md)

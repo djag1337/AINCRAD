@@ -37,6 +37,7 @@ targets:
         NSRemindersFullAccessUsageDescription: "The Quest log widget lists reminders due today."
         NSCalendarsUsageDescription: "The Quest log widget lists today's calendar events."
         NSRemindersUsageDescription: "The Quest log widget lists reminders due today."
+        NSContactsUsageDescription: "Only for the contact, message, mail and facetime quick commands (off by default): finds the person you typed. Nothing is sent without you pressing Send."
         NSBluetoothAlwaysUsageDescription: "The System menu lists your Bluetooth devices so you can connect and disconnect them."
         NSLocationUsageDescription: "macOS only shows Wi-Fi network names to apps with Location access. AINCRAD doesn't use your location."
         NSLocationWhenInUseUsageDescription: "macOS only shows Wi-Fi network names to apps with Location access. AINCRAD doesn't use your location."

@@ -386,6 +386,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         case let b where b.hasPrefix("macset:"):
             if let done = MacSettings.perform(b) { scriptHost.showMessage(done, from: "Settings") }
         case let b where b.hasPrefix("profiles:"): runProfile(b)
+        case let b where b.hasPrefix("qc:"):
+            QuickCommands.perform(b) { [weak self] text in self?.scriptHost.showMessage(text, from: "Commands") }
+        case "settings:quickcommands": showSettings(tab: .commands)
         case let b where b.hasPrefix("files:"):
             if let message = FilesMenu.shared.perform(b, theme: store.theme) { scriptHost.showMessage(message, from: "Files") }
         case let b where b.hasPrefix("media:"):

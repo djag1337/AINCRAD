@@ -72,6 +72,8 @@ struct AppSettings: Codable, Equatable {
     var notificationsHideOriginal = false
     /// Where bubbles appear: "pointer" (the display under the pointer), "main" or "all".
     var notificationDisplays = "pointer"
+    /// Quick command id → on/off; missing ids use the command's default (off if it needs a permission).
+    var quickCommands: [String: Bool] = [:]
     var notificationSeconds = 6.0
     /// Your catalog repository (a clone of the GitHub repo) for the Publish buttons.
     var catalogRepoPath = "~/Documents/AINCRAD-catalog"

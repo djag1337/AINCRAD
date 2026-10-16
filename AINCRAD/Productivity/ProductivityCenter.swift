@@ -368,7 +368,7 @@ final class ProductivityCenter {
     func commandResults(_ raw: String) -> [MenuItem] {
         let q = raw.trimmingCharacters(in: .whitespaces)
         let lower = q.lowercased()
-        if lower.hasPrefix("note ") || lower.hasPrefix("capture ") {
+        if lower.hasPrefix("capture ") {
             let text = String(q.dropFirst(q.firstIndex(of: " ")!.utf16Offset(in: q) + 1))
             return [MenuItem(id: "command:capture", name: "Capture “\(String(text.prefix(55)))”", icon: "sf:tray.and.arrow.down.fill", action: .builtin("productivity:captureText:\(text.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? text)"))]
         }
