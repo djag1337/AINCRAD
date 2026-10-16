@@ -67,6 +67,7 @@ struct ThemeEditor: View {
         ("Icon badge", \.iconBadge), ("Icon glyph", \.iconGlyph),
         ("Round button", \.circle), ("Round button icon", \.circleIcon), ("Round button border", \.circleBorder),
         ("Info panel footer", \.infoFooter), ("Info panel icon", \.infoIcon),
+        ("Browser close button", \.windowClose), ("Browser minimise button", \.windowMinimize), ("Browser zoom button", \.windowZoom),
         ("Caption", \.caption), ("Caption shadow", \.captionShadow), ("Shadow", \.shadow), ("Screen tint", \.backdrop),
     ]
 

@@ -44,6 +44,10 @@ struct Theme: Codable, Equatable {
         var shadow = "#0000005C"
         var infoFooter = "#E6E7EAF5"
         var infoIcon = "#9095A0"
+        /// AINCRAD Browser's window buttons (they replace the macOS stoplight).
+        var windowClose = "#FF5F57"
+        var windowMinimize = "#FEBC2E"
+        var windowZoom = "#28C840"
     }
 
     struct Font: Codable, Equatable {
