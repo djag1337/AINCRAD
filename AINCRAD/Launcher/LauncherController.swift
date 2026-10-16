@@ -93,6 +93,12 @@ final class LauncherController: NSObject, NSWindowDelegate, MenuViewDelegate {
             items.insert(productivity.rootMenu(), at: 0)
             items.insert(SystemMenu.root(), at: 1)
             items.insert(FilesMenu.root(), at: 2)
+            // The Web circle is the browser's home: new tab, open tabs, bookmarks and history sit above your own links.
+            if let web = items.firstIndex(where: { $0.name == "Web" }) {
+                items[web].children = BrowserLink.webItems() + (items[web].children ?? [])
+            } else {
+                items.append(MenuItem(name: "Web", icon: "sf:globe", children: BrowserLink.webItems()))
+            }
         }
         SystemMenu.shared.onUpdate = { [weak self] provider in self?.menuView?.refreshColumns(provider: provider) }
         WindowMenu.shared.onUpdate = { [weak self] provider in self?.menuView?.refreshColumns(provider: provider) }

@@ -43,6 +43,26 @@ enum BrowserLink {
 
     // MARK: Launcher menu
 
+    /// The browser's entries for the launcher's Web circle: its home for opening pages and for what the browser stores.
+    static func webItems() -> [MenuItem] {
+        guard isInstalled else {
+            return [MenuItem(id: "browser:setup", name: "AINCRAD Browser…", icon: "sf:globe", action: .builtin("settings:browser"),
+                             description: "A companion web browser in your AINCRAD theme. Opens Settings, where you can install it (nothing downloads until you approve).")]
+        }
+        let tabCount = isRunning ? (snapshot()?.tabs.count ?? 0) : 0
+        return [
+            MenuItem(id: "browser:new", name: "New Tab", icon: "sf:plus", action: .url("aincrad-browser://new"),
+                     description: "Opens a new tab in AINCRAD Browser."),
+            MenuItem(id: "browser:tabs", name: tabCount > 0 ? "Open Tabs (\(tabCount))" : "Open Tabs", icon: "sf:square.on.square", provider: "browser:tabs"),
+            MenuItem(id: "browser:bookmark", name: "Bookmark Current Page", icon: "sf:bookmark.fill", action: .url("aincrad-browser://bookmark"),
+                     description: "Saves the page in front in AINCRAD Browser to its bookmarks."),
+            MenuItem(id: "browser:bookmarks", name: "Bookmarks", icon: "sf:bookmark", provider: "browser:bookmarks"),
+            MenuItem(id: "browser:history", name: "History", icon: "sf:clock.fill", provider: "browser:history"),
+            MenuItem(id: "browser:private", name: "New Private Window", icon: "sf:eye.slash.fill", action: .url("aincrad-browser://private"),
+                     description: "Private windows are never shared with AINCRAD."),
+        ]
+    }
+
     static func menuItem() -> MenuItem? {
         guard isInstalled else {
             return MenuItem(id: "browser:setup", name: "AINCRAD Browser…", icon: "sf:globe", action: .builtin("settings:browser"),

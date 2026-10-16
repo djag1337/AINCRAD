@@ -19,7 +19,7 @@ final class FilesMenu {
             MenuItem(id: "files:trash", name: "Trash", icon: "sf:trash.fill", provider: "files:trash"),
             MenuItem(name: "Now Playing", icon: "sf:play.circle.fill", provider: "media:now",
                      description: "Music and Spotify: what's playing, play/pause, next, previous."),
-        ] + [BrowserLink.menuItem()].compactMap { $0 }, description: "Recent files, downloads, drives, the Trash and what's playing.")
+        ], description: "Recent files, downloads, drives, the Trash and what's playing.")
     }
 
     func children(_ provider: String) -> [MenuItem] {
